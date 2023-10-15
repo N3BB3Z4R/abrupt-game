@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Abrupt</title>
-    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
     <meta charset="utf-8" />
+    <title>Abrupt</title>
+    <!-- <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
 
@@ -64,6 +64,7 @@
       max-width: calc(var(--ui-width) + var(--ui-border-size) * 2);
       margin: 0 auto;
       background-color: red; /* Change the progress bar color here */
+      color: blue;
       border: 1rem calc(var(--ui-border-size) / 2) solid var(--ui-border);
       border-radius: 0;
       overflow: hidden;
@@ -128,8 +129,8 @@
     <progress id="hud-fuel" max="100" value="100"></progress>
     <!-- <canvas id="terrain"></canvas> -->
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <!-- <script src="/core/engine.js"></script> -->
     <script type="module" src="/core/main.js"></script>
+    <!-- <script type="module" src="/core/main.js"></script> -->
     <!-- <script src="/core/terrain-generator.js"></script> -->
   </body>
   <!-- <footer><a href="https://videojuegosantiguos.blogspot.com/2013/06/lunar-lander-atari-1979.html" >Based on Lunar Lander</a></footer> -->
