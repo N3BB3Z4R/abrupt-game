@@ -12,31 +12,21 @@ const spacecraftHeight = 8; // Altura de la nave
 const engineParticles = []; // Almacena los píxeles del escape del motor
 const engineParticleSize = 4; // Tamaño de los píxeles del escape del motor
 const engineHorizontalPower = 0.1; // Fuerza de propulsión horizontal
-const propulsionColors = ['#FFA', '#3FF', '#FD3', '#FF4400']
 let engineVerticalPower = 0.11; // Fuerza de propulsión vertical
-// Asteroids Generation
-let asteroidProbability = 0.08 // Probabilidad de que aparezca un asteroide
-const asteroidAverageSize = 10 // Tamaño medio de los asteroides
-const minAsteroidSize = 12; // Tamaño mínimo de los asteroides
-const maxAsteroidSize = 20; // Tamaño máximo de los asteroides
-const asteroidColor = '#D55' // Color de los asteroides
-const asteroidVelocityX = 0.6 // velocidad horizontal de los asteroides
-const asteroidVelocityY = 0.6 // velocidad vertical de los asteroides
-let pixelSizeAsteroid = null // inicializamos la variable para que no de error
-// Particle Generation
-const initialParticleLifespan = 40 // Vida inicial de los píxeles del escape del motor
-const lifespan = 30 // Vida de los píxeles del escape del motor
-const explosionNumberPixels = 15 // Cantidad de píxeles en la explosión
-const explosionParticleSize = 5 // Tamaño de los píxeles en la explosión
-// Game variables
-const maxLandingSpeed = 1.5; // Velocidad máxima de aterrizaje
-let landed = false; // Estado de aterrizaje
-let crashed = false; // Estado de colisión
-let crushed = false; // Estado de aplastamiento
-let flightTime = 0; // Tiempo de vuelo en segundos
-let elapsedTime = 0; // Tiempo transcurrido desde el inciio del juego
-let startTime; // Tiempo de inicio del juego
-let isGameOver = false; // Estado de juego terminado
+const asteroidProbability = 0.08
+const asteroidAverageSize = 10
+const minAsteroidSize = 12;
+const maxAsteroidSize = 20;
+const asteroidColor = '#D55'
+const asteroidVelocityX = 0.6
+const asteroidVelocityY = 0.6
+const propulsionColors = ['#FFA', '#3FF', '#FD3', '#FF4400']
+const terrainColor = '#842'
+const initialParticleLifespan = 40
+const lifespan = 30
+const explosionNumberPixels = 15
+const explosionParticleSize = 5
+// const lifespan = Math.random() * 30 + 10
 
 // GENERATE TERRAIN
 function generateTerrain(width, height) {
@@ -100,16 +90,16 @@ const asteroidShape = [
   [' ', '#', '#', ' '],
 ];
 
+const pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
 
 function createAsteroid() {
-  pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
   const thisAsteroidSize = pixelSizeAsteroid
   const asteroid = {
     x: Math.random() * canvas.width,
     y: 0, // Inicialmente, los asteroides aparecen en la parte superior del lienzo
     vx: (Math.random() - asteroidVelocityX) * 2, // Velocidad horizontal aleatoria
     vy: Math.random() * asteroidVelocityY + 1, // Velocidad vertical aleatoria
-    size: pixelSizeAsteroid, // Tamaño aleatorio
+    size: Math.random() * 10 + asteroidAverageSize, // Tamaño aleatorio
     shape: asteroidShape, // Matriz que representa la forma del asteroide
   };
 
@@ -120,13 +110,13 @@ function createAsteroid() {
   asteroids.push(asteroid);
 
   // si hay más de 50 asteroides en el array, eliminar los primeros 30
-  // if (asteroids.length > 40) {
-  //   asteroids.splice(0, 10);
-  // }
+  if (asteroids.length > 40) {
+    asteroids.splice(0, 10);
+  }
 }
 
 function drawAsteroid(context, asteroid) {
-  const thisAsteroidSize = asteroid.size;
+  const thisAsteroidSize = pixelSizeAsteroid
   context.fillStyle = asteroidColor; // Color de los asteroides
   for (let row = 0; row < asteroid.shape.length; row++) {
     for (let col = 0; col < asteroid.shape[0].length; col++) {
@@ -358,7 +348,6 @@ function updateSpacecraft() {
       // Comprobar si la velocidad de la nave es demasiado alta para aterrizar
       if (Math.abs(velocityX) > maxLandingSpeed || Math.abs(velocityY) > maxLandingSpeed) {
         // Colisión con el suelo
-        isGameOver = true;
         crashed = true; // Establecer el estado de aterrizaje
         engineVerticalPower = 0
         velocityY = 0;
@@ -569,12 +558,7 @@ function updateSpacecraft() {
 
 // DRAW HUD
 function drawHUD() {
-  const hud = document.getElementById('hud');
-  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />
-                      Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />
-                      Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}<br />
-                      Flight time: ${flightTime.toFixed(2)} seconds</span>`;
-  // const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
+  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
   const dataLanded = `<span class="land-success">¡Aterrizaje exitoso!</span>`;
   const dataForceLanded = `<span class="land-success">¡Aterrizaje exitoso pero con daños!</span>`;
   const dataCrashed = `<span class="land-fail">¡Demasiado rápido!</span>`;
@@ -595,40 +579,13 @@ function drawHUD() {
     hud.innerHTML = dataPlaying;
   }
 }
-// DRAW TIME COUNTER ON CANVAS
-function drawTime(context) {
-  context.font = "30px Arial";
-  context.fillStyle = "white";
-  context.fillText(`Time: ${elapsedTime.toFixed(2)}s`, 10, 30);
-}
 
 // GAME LOOP
 function gameLoop() {
   // Limpia el lienzo solo si el juego no está pausado
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (!gamePaused) {
-    // Actualiza el tiempo de vuelo solo si el juego no está pausado
-    if (!gamePaused && !landed && !crashed && !crushed) {
-      flightTime += 1 / 60; // Asumiendo 60 cuadros por segundo
-    }
 
-    if (!isGameOver && !landed && !crashed) {
-      // Calcular el tiempo transcurrido solo si el juego está en curso
-      if (!startTime) {
-        startTime = new Date();
-      } else {
-        const currentTime = new Date();
-        elapsedTime = (currentTime - startTime) / 1000; // Convertir a segundos
-
-        // Aumenta asteroidProbability cada 20 segundos
-        if (elapsedTime > 5) {
-          asteroidProbability += 0.10;
-          startTime = currentTime; // Reinicia el tiempo de inicio
-        }
-      }
-    }
-    // Dibujar el tiempo en el canvas
-    drawTime(context);
     // Dibuja el HUD
     drawHUD();
 
@@ -717,8 +674,6 @@ function restartGame() {
   isGameOver = false;
   asteroids.length = 0;
   engineParticles.length = 0;
-  asteroidProbability = 0.08; // Restablece la probabilidad de asteroides
-  startTime = null; // Reinicia el tiempo de inicio
   // Regenera el terreno si es necesario
   surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight);
   // Limpia el lienzo
@@ -751,5 +706,5 @@ gameLoop();
 // DONE: Arreglar colision nave con asteroides
 // DONE: Crear asteroides de varios pixeles que se muevan por el mapa a diferente velocidad
 // DONE: Centrar el propulsor con la nave
-// DONE: Refactorizar el jumpingPixel para que genere la explosion al chocar contra el terreno, o la nave con l asteroide o el choque entre asteroides
-// DONE: Poner contador de tiempo de nave en el aire, y que se pare cuando toca el suelo
+// DONE: Refactorizar el jumpingPixel para que genere l
+// TODO: Quiza? Hacer que el mapa se desplace en scroll
