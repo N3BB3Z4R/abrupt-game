@@ -1,17 +1,10 @@
 
-// DONE: Arreglar colision de fuel con terreno, no deberia contar
 // TODO: Arreglar posicion de Emojis y Texto de Hud
 // TODO: Que el giro de la nave visualmente funcione natural
 // TODO: Arreglar contador de tiempo final que parpadea raro
 // TODO: Arreglar generador de terrenos, hacer mas aleatorio
 // TODO: Que al aterrizar la nave se quede en el suelo quieta
 // TODO: Separar array de explosiones de asteroides del array de propulsion, y del array de particules de recoger fuel
-// TODO: Hacer controles de dificultad
-// TODO: Hacer historico de puntuacion
-// TODO: Añadir contador de numero de items de fuel recogido
-// TODO: Arreglar Controles para movil
-// TODO: Arreglar vista de movil
-// TODO: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
 // TODO: Hacer Iconos de la PWA
 // TODO: Convertir en PWA
 // TODO: Hacer Graficos
@@ -20,6 +13,18 @@
 // TODO: Cuando los asteroides colisionan con la nave generan rebote de la nave
 // TODO: Añadir particulas cuando se recoge fuel
 // TODO: Hacerle musica
+// TODO: Añadir contador de numero de items de fuel recogido
+
+// DONE: Crear un manejador de localStorage para guardar configuracion de controles
+// TODO: Crear un manejador de localStorage para guardar puntuaciones
+// TODO: Hacer historico de puntuacion
+// DONE: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
+// TODO: Arreglar Controles para movil
+// TODO: Arreglar vista de movil
+// TODO: Hacer controles de dificultad
+
+// DONE: Crear repositorio con todas las versiones del codigo
+// DONE: Arreglar colision de fuel con terreno, no deberia contar
 // DONE: Pintar mensajes de textos de eventos en el centro de la pantalla, hacer funcion unica para pintar mensajes
 // DONE: Implementar diferentes tipos de asteroides
 // DONE: Implementar diferentes tamaños de explosiones segun tamaño de asteroide

@@ -126,6 +126,50 @@ progress {
   background-color: red;
 }
 
+#controls {
+  width: var(--ui-width);
+  color: var(--ui-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem auto;
+  perspective: 300px;
+}
+
+#controls button {
+  cursor: pointer;
+  border: 2px solid var(--ui-color);
+  border-left: 5px solid var(--ui-color);
+  color: var(--ui-color);
+  padding: 0.5rem 1rem;
+  margin-left: 2rem;
+  background-color: var(--ui-border);
+  border-radius: var(--ui-border-radius);
+  transition: 200ms all ease-in-out;
+}
+
+/* #controls button:nth-child(2) {
+  transform: rotateY(45deg) scale(1);
+}
+
+#controls button:nth-child(3) {
+  transform: rotateY(35deg) scale(1);
+} */
+
+#controls button:hover {
+  transform: scale(1.1);
+  transition: 400ms all ease-in-out;
+}
+
+#controls button:active {
+  transform: rotateY(-45deg) scale(0.9);
+  /* Rotación inversa cuando se hace clic */
+  perspective: 500px;
+  transition: 200ms all ease-in-out;
+  color: var(--ui-background);
+  /* Cambia el color de texto al hacer clic */
+}
+
 #display-wrapper {
   margin: 0 auto;
   width: calc(var(--ui-width) + var(--ui-border-size) + var(--ui-border-size));
