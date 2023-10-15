@@ -20,6 +20,17 @@
       padding: 0;
       background-color: black;
     }
+    #ascii-container {
+      display: flex;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 14px;
+      font-weight: bold;
+      white-space: pre;
+      color: var(--ui-color); /* Puedes ajustar el color de la letra */
+      background-color: black; /* Puedes ajustar el color de fondo */
+    }
     #hud {
       /* position: absolute; */
       display: flex;
@@ -76,6 +87,14 @@
   </style>
 
   <body>
+    <div id="ascii-container">
+   _____ ___.                       __   
+  /  _  \\_ |_________ __ _________/  |_ 
+ /  /_\  \| __ \_  __ |  |  \____ \   __\
+/    |    | \_\ |  | \|  |  |  |_> |  |  
+\____|__  |___  |__|  |____/|   __/|__|  by Oscar Abad
+        \/    \/            |__|         
+    </div>
     <div id="hud">
     </div>
     <progress id="hud-fuel" max="100" value="100"></progress>
