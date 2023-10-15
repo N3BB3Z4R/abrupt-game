@@ -15,146 +15,15 @@ import { isPixelInsideAsteroid, shipCollisionsWithTerrain, shipCollisionsWithAst
 import { drawHUD, drawSpeed, drawTime, drawPausedText, drawFuel, drawTextOnScreen, drawFinalScore } from './Hud.js'
 import { jumpingPixels, updateEngineParticles, smokeCrashedShip } from './Particles.js'
 import { drawFuelItem, createFuelItem } from './Fuel.js'
-import { restartGame } from './Utils.js'
+import { setupKeyboardControls, setupMouseControls, setupMobileControls, changeControlOption } from "./Controls.js"
 import { constants, variables } from "./Config.js"
+import { playThrust, playSfx } from './Audio.js'
 
-//#############################
-//#
-//#   CONTROLS
-//#
-//#
-//#############################
-
-// Verificar si el usuario está en un dispositivo móvil
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-// Función para cambiar la opción de control
-function changeControlOption(option) {
-  variables.controlOption = option;
-}
-
-if (variables.controlOption === "keyboard" && !isMobile) {
-  // CONTROLES TECLADO Agregar eventos de teclado para detectar las teclas presionadas
-  document.addEventListener("keydown", function (event) {
-    // añade aqui la variable de movimiento del raton en eje X
-    if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") {
-      variables.leftKeyPressed = true
-    } else if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") {
-      variables.rightKeyPressed = true
-    } else if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
-      variables.upKeyPressed = true
-    } else if (event.key === " ") {
-      // Tecla Espacio para pausar/reanudar el juego
-      variables.gamePaused = !variables.gamePaused
-      if (!variables.gamePaused) {
-        // Si se reanuda el juego, solicita un nuevo cuadro de animación
-        requestAnimationFrame(gameLoop)
-      } else if (variables.isGameOver) {
-        restartGame()
-      }
-    } else if (event.key === "r" || event.key === "R") {
-      // Tecla R para reiniciar el juego
-      restartGame()
-    }
-  })
-
-  // CONTROLES TECLADO Agregar eventos de teclado para detectar las teclas que dejan de ser presionadas
-  document.addEventListener("keyup", function (event) {
-    if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") {
-      variables.leftKeyPressed = false
-    } else if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") {
-      variables.rightKeyPressed = false
-    } else if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
-      variables.upKeyPressed = false
-    } else if (event.key === " ") {
-      // Tecla Espacio liberada
-      // Puedes realizar alguna acción adicional aquí si es necesario
-    } else if (event.key === "r" || event.key === "R") {
-      // Tecla R liberada
-      // Puedes realizar alguna acción adicional aquí si es necesario
-    }
-  })
-}
-
-if (variables.controlOption === "mouse" && !isMobile) {
-  // CONTROLES RATON Agregar eventos de raton
-  document.addEventListener("mousedown", function (event) {
-    // Verifica si se hizo clic en el botón izquierdo del ratón
-    if (event.button === 0) {
-      variables.upKeyPressed = true
-    }
-  })
-  document.addEventListener("mouseup", function (event) {
-    // Verifica si se soltó el botón izquierdo del ratón
-    if (event.button === 0) {
-      variables.upKeyPressed = false
-    }
-  })
-  document.addEventListener("mousemove", function (event) {
-    // Obtén la posición actual del ratón en el eje X
-    const mouseX = event.clientX
-
-    // Define un umbral para determinar la mitad de la pantalla
-    const screenHalf = window.innerWidth / 2
-
-    // Comprueba si el ratón está a la izquierda o a la derecha de la mitad de la pantalla
-    if (mouseX < screenHalf) {
-      // El ratón está a la izquierda de la mitad de la pantalla, puedes hacer algo para mover a la izquierda
-      variables.leftKeyPressed = true
-      variables.rightKeyPressed = false // Asegúrate de que no se esté presionando la tecla de mover a la derecha
-    } else {
-      // El ratón está a la derecha de la mitad de la pantalla, puedes hacer algo para mover a la derecha
-      variables.rightKeyPressed = true
-      variables.leftKeyPressed = false // Asegúrate de que no se esté presionando la tecla de mover a la izquierda
-    }
-  })
-}
-
-if (isMobile) {
-  // CONTROLES MOVIL
-  let touchStartX = 0
-  let touchEndX = 0
-
-  document.addEventListener("touchstart", function (event) {
-    // Obtén la posición X del primer toque
-    touchStartX = event.touches[0].clientX
-
-    // Realiza alguna acción cuando se inicia el toque (por ejemplo, mover hacia arriba)
-    variables.upKeyPressed = true
-  })
-
-  document.addEventListener("touchend", function (event) {
-    // Obtén la posición X del último toque
-    touchEndX = event.changedTouches[0].clientX
-
-    // Calcula la distancia entre el inicio y el final del toque
-    const touchDistanceX = touchEndX - touchStartX
-
-    // Define un umbral para determinar si el deslizamiento fue hacia la izquierda o hacia la derecha
-    const swipeThreshold = 50 // Puedes ajustar este valor según tus necesidades
-
-    if (touchDistanceX < -swipeThreshold) {
-      // Deslizamiento hacia la izquierda, puedes hacer algo para mover a la izquierda
-      variables.leftKeyPressed = true
-      variables.rightKeyPressed = false // Asegúrate de que no se esté presionando la tecla de mover a la derecha
-    } else if (touchDistanceX > swipeThreshold) {
-      // Deslizamiento hacia la derecha, puedes hacer algo para mover a la derecha
-      variables.rightKeyPressed = true
-      variables.leftKeyPressed = false // Asegúrate de que no se esté presionando la tecla de mover a la izquierda
-    } else {
-      // Realiza alguna acción si el deslizamiento no alcanza el umbral (por ejemplo, saltar)
-      // Puedes personalizar esta acción según las necesidades de tu juego
-    }
-
-    // Realiza alguna acción cuando se finaliza el toque (por ejemplo, dejar de mover hacia arriba)
-    variables.upKeyPressed = false
-  })
-
-  // Evitar el desplazamiento de la página en dispositivos móviles al tocar y deslizar
-  document.body.addEventListener("touchmove", function (event) {
-    event.preventDefault()
-  })
-}
+// Llama a las funciones para configurar los controles
+changeControlOption("keyboard") // Cambia la opción de control según tus necesidades
+setupKeyboardControls(gameLoop)
+setupMouseControls()
+setupMobileControls()
 
 //#############################
 //#
@@ -164,9 +33,6 @@ if (isMobile) {
 //#############################
 
 function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, fuelItems) {
-  // const {
-  //   fuelItems
-  // } = variables
 
   // Aplicar gravedad lunar
   variables.velocityY += constants.incrementVelocityY // Ajusta este valor según la gravedad lunar deseada
@@ -227,7 +93,7 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
 
   asteroidsCollisions(surface)
 
-  checkFuelCollision()
+  checkFuelCollision(surface)
 
   // Aplicar la fuerza de propulsión cuando se presiona la flecha arriba
   if (variables.upKeyPressed && variables.fuel > 0) {
@@ -246,7 +112,6 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
         lifespan: constants.lifespan, // Vida aleatoria
       }
       updateEngineParticles()
-
 
       variables.engineParticles.push(particle)
     }
@@ -271,17 +136,21 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
   context.rotate(variables.shipRotationAngle)
   // drawSpacecraft(context, 0, -4) // Dibuja la nave en la posición (0, 0) relativa a la nave girada
 
-  // Dibujar una línea que represente la dirección de la propulsión
-  context.strokeStyle = "#FF0000";
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(9, 30);
-  const lineEndX = 9 + thrustX * 10; // Ajusta el factor (10) según la longitud deseada de la línea
-  const lineEndY = 30 + thrustY * 10; // Ajusta el factor (10) según la longitud deseada de la línea
-  context.lineTo(lineEndX, lineEndY);
-  context.stroke();
+  // Dibujar líneas que represente la dirección de la propulsión si alguna tecla es presionada
+  context.strokeStyle = variables.upKeyPressed || variables.leftKeyPressed || variables.rightKeyPressed ? "#FF0000" : "#FF000000";
+  const lineWidths = [2, 5, 9];
 
-  context.restore()
+  for (let i = 0; i < 3; i++) {
+    const offsetY = i * 5; // Espacio vertical entre cada línea
+    context.lineWidth = lineWidths[i]; // Establece el ancho de línea desde el array
+    context.beginPath();
+    context.moveTo(9, 30 + offsetY);
+    const lineEndX = 9 + thrustX * 10;
+    const lineEndY = 30 + thrustY * 10 + offsetY;
+    context.lineTo(lineEndX, lineEndY);
+    context.stroke();
+  }
+  context.restore();
 
   // Actualizar y dibujar los píxeles del escape del motor
   for (let i = 0; i < variables.engineParticles.length; i++) {
@@ -348,6 +217,8 @@ function gameLoop() {
     // Dibuja el HUD
     drawHUD(variables.crashed, variables.crushed, variables.landed, variables.velocityY, variables.fuel, variables.spacecraftX, variables.spacecraftY, variables.flightTime)
 
+    playThrust(); // Llama a playThrust en cada iteración del bucle
+
     // Generar un nuevo objeto de fuel si no hay objetos de fuel en pantalla
     if (!fuelItems.some(fuelItem => !fuelItem.collected)) {
       createFuelItem(canvas)
@@ -361,7 +232,6 @@ function gameLoop() {
         variables.fuelItemsToKeep.push(fuelItem) // Agrega los objetos de combustible que no se deben eliminar
       }
     }
-    // fuelItems = [...fuelItemsToKeep]; // Reemplaza el array original
     // Borrar objetos de fuel si colisionan con el terreno
     fuelItems.forEach((fuelItem, index) => {
       if (fuelItem.collected || fuelItem.y >= canvas.height) {
@@ -433,6 +303,8 @@ export const canvas = document.getElementById("gameCanvas") // Obtén el element
 export const context = canvas.getContext("2d") // Obtén el contexto de dibujo 2D
 // detectViewportSize()
 export const surface = generateTerrain(canvas.width / constants.terrainUnitWidth, canvas.height / constants.terrainUnitHeight) // Genera el terreno lunar
+export const displayWrapper = document.getElementById("display-wrapper");
+
 // const hud = document.getElementById("hud")
 
 // Inicia el gameLoop

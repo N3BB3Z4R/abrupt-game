@@ -6,6 +6,7 @@
 //#############################
 
 import { variables, constants } from "./Config"
+import { displayWrapper } from './main'
 
 // DRAW HUD
 export function drawHUD(crashed, crushed, landed, velocityY, fuel, spacecraftX, spacecraftY, flightTime) {
@@ -66,6 +67,7 @@ export function drawFinalScore(context, canvas, elapsedTime) {
 export function drawTime(context, canvas) {
   context.font = "30px pixelfont";
   context.fillStyle = "white";
+  // create inner html element with a div that contains the emoji in a span and other span with the variables.elapsedTime
   const text = `🕑 ${variables.elapsedTime.toFixed(2)}s`;
   const textWidth = context.measureText(text).width;
   const x = (canvas.width - textWidth) / 2;
@@ -90,15 +92,16 @@ export function drawSpeed(context, velocityY) {
 }
 
 export function paintHitInBorder() {
-  const displayWrapper = document.querySelector(".display-wrapper");
 
   // Remove class glow-green and add glow-red
   displayWrapper.classList.remove("glow-green");
   displayWrapper.classList.add("glow-red");
 
   // Wait 400ms and restore glow-green
-  setTimeout(() => {
-    displayWrapper.classList.remove("glow-red");
-    displayWrapper.classList.add("glow-green");
-  }, 400);
+  if (!variables.landed && !variables.crashed) {
+    setTimeout(() => {
+      displayWrapper.classList.remove("glow-red");
+      displayWrapper.classList.add("glow-green");
+    }, 200);
+  }
 }

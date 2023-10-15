@@ -13,13 +13,17 @@
 
 @font-face {
   font-family: 'pixelfont';
-  src: url('./public/minecraftia.ttf') format('truetype');
+  /* src: url('./public/fonts/pixelary.otf'); */
+  /* src: url('./public/fonts/pixelfont.ttf') format('truetype'); */
+  /* src: url('./public/fonts/retrogaming.ttf') format('truetype'); */
+  src: url('./fonts/minecraftia.ttf') format('truetype');
 }
 
 body {
   margin: 2rem 0;
   padding: 0;
   background: radial-gradient(circle, rgba(16, 17, 27, 1) 0%, rgba(8, 6, 14, 1) 42%, rgba(0, 0, 0, 1) 100%);
+  font-family: 'pixelfont';
 }
 
 #ascii-container {
@@ -47,7 +51,7 @@ body {
   flex-direction: column;
   line-height: 1.5rem;
   font-size: 1.2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'pixelfont', Tahoma, Geneva, Verdana, sans-serif;
   text-transform: uppercase;
   text-align: center;
   top: 1rem;
@@ -64,6 +68,12 @@ body {
   border-bottom: 0 solid var(--ui-border);
   border-left: var(--ui-border-size) solid var(--ui-border);
   border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
+}
+
+.hud-element {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 #hud-fuel {
@@ -116,7 +126,7 @@ progress {
   background-color: red;
 }
 
-.display-wrapper {
+#display-wrapper {
   margin: 0 auto;
   width: calc(var(--ui-width) + var(--ui-border-size) + var(--ui-border-size));
   border-radius: var(--ui-border-radius);
@@ -129,9 +139,9 @@ progress {
 }
 
 .glow-green {
-  transition: 300ms ease-in-out;
-  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
   animation: pulseBoxShadow 2s infinite;
+  transition: 300ms box-shadow ease-in-out;
+  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
 }
 
 @keyframes pulseBoxShadow {
@@ -149,8 +159,22 @@ progress {
 }
 
 .glow-red {
-  transition: 300ms ease-in-out;
-  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  animation: pulseBoxShadowRed 1s forwards;
+  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #ff2f01bc, 0 0 40px #da520898, 0 0 50px #c13d054d, 0 0 60px #b570092d, 0 0 70px #d7e9d034;
+}
+
+@keyframes pulseBoxShadowRed {
+  0% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  }
+
+  20% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #ff2f01bc, 0 0 40px #da520898, 0 0 50px #c13d054d, 0 0 60px #b570092d, 0 0 70px #d7e9d034;
+  }
+
+  100% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  }
 }
 
 #gameCanvas {

@@ -8,7 +8,7 @@ export const constants = {
   minHoleWidth: 2, // Minimum hole width
   peakChance: 0.0, // Chance of having a mountain
   holeChance: 0.6, // Chance of having a hole
-  terrainColor: "#332", // Ground color
+  terrainColor: "#567", // Ground color
   spacecraftWidth: 8, // Spacecraft width
   spacecraftHeight: 8, // Spacecraft height
   pixelSizeShip: 3, // Size of spacecraft pixel
@@ -48,7 +48,7 @@ export const constants = {
 export let variables = {
   fuelItems: [],
   fuelItemsToKeep: [],
-  fuelVelocityY: 0.6,
+  fuelVelocityY: 1,
   shipRotationAngle: 0, // Initial rotation angle of the spacecraft
   fuel: 100, // Initial fuel amount
   engineParticles: [], // Array to store engine particles

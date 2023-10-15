@@ -1,9 +1,8 @@
 import { spacecraftShape } from './Spacecraft'
-// import { gameProps, drawTextOnScreen, drawFinalScore } from './main'
-// import { gameProps } from './main'
 import { constants, variables } from './Config'
 import { drawTextOnScreen, drawFinalScore, paintHitInBorder } from './Hud'
 import { jumpingPixels } from './Particles'
+import { playSfx } from './Audio'
 
 //#############################
 //#
@@ -39,6 +38,7 @@ export const shipCollisionsWithTerrain = (canvas, surface, context) => {
         variables.velocityY = 0
         variables.velocityX = 0
         drawTextOnScreen("¡Pero donde vaaaaas!!", context, canvas)
+        playSfx("hit3")
 
         // Llama a jumpingPixels para simular una explosión
         const explosion = jumpingPixels(variables.spacecraftX, variables.spacecraftY, -1.5) // -1.5 para una explosión hacia arriba
@@ -46,6 +46,7 @@ export const shipCollisionsWithTerrain = (canvas, surface, context) => {
         variables.engineParticles.push(...explosion)
       } else {
         // Aterrizaje en el suelo
+        paintHitInBorder()
         variables.isGameOver = true
         variables.landed = variables.crashed // Establecer el estado de aterrizaje
         variables.velocityY = 0
@@ -54,6 +55,7 @@ export const shipCollisionsWithTerrain = (canvas, surface, context) => {
         variables.crashed ?
           drawTextOnScreen("¡Te has estampado!", context, canvas) :
           drawTextOnScreen("¡Aterrizaje exitoso!", context, canvas)
+
       }
       variables.velocityY = 0
       drawFinalScore(context, canvas, variables.elapsedTime)
@@ -62,43 +64,46 @@ export const shipCollisionsWithTerrain = (canvas, surface, context) => {
 }
 
 export const shipCollisionsWithAsteroids = () => {
-  const {
-    pixelSizeShip
-  } = constants
+  const { pixelSizeShip } = constants;
 
-  // Verificar colisiones de nave con asteroides
   for (let i = 0; i < variables.asteroids.length; i++) {
-    const asteroid = variables.asteroids[i]
+    const asteroid = variables.asteroids[i];
 
-    // Verifica si algún píxel de la nave coincide con algún píxel del asteroide
     for (let row = 0; row < spacecraftShape.length; row++) {
       for (let col = 0; col < spacecraftShape[0].length; col++) {
-        if (spacecraftShape[row][col] === constants.pixelTypes.ship && isPixelInsideAsteroid(variables.spacecraftX + col * constants.pixelSizeShip, variables.spacecraftY + row * constants.pixelSizeShip, asteroid)) {
-          // if (spacecraftShape[row][col] === pixelTypes.asteroid && isPixelInsideAsteroid(spacecraftX + col * pixelSizeShip, spacecraftY + row * pixelSizeShip, asteroid)) {
-          // Ha ocurrido una colisión entre la nave y el asteroide
-          variables.crushed = true
+        if (spacecraftShape[row][col] === constants.pixelTypes.ship) {
+          const spacecraftX = variables.spacecraftX + col * pixelSizeShip;
+          const spacecraftY = variables.spacecraftY + row * pixelSizeShip;
 
-          // Llama a jumpingPixels para simular una explosión
-          const explosion = jumpingPixels(variables.spacecraftX, variables.spacecraftY, -1.5, pixelSizeShip, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
-          // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-          variables.engineParticles.push(...explosion)
+          // Ahora, en lugar de simplemente verificar si el píxel de la nave está dentro del asteroide,
+          // verifica si el píxel de la nave está dentro del asteroide y si el asteroide tiene un tamaño mayor que 0
+          if (isPixelInsideAsteroid(spacecraftX, spacecraftY, asteroid) && asteroid.size > 0) {
+            // Ha ocurrido una colisión entre la nave y el asteroide
+            variables.crushed = true;
+            playSfx("hit2")
 
-          // Elimina el asteroide
-          variables.asteroids.splice(i, 1)
-          i-- // Ajusta el índice para evitar problemas con el ciclo
-          return // Sale de la función inmediatamente para evitar verificar más colisiones en este fotograma
+            const explosion = jumpingPixels(spacecraftX, spacecraftY, -1.5, pixelSizeShip, constants.explosionNumberPixels);
+            variables.engineParticles.push(...explosion);
+
+            // Reduzca el tamaño del asteroide en una cantidad específica (ajuste esto según sus necesidades)
+            asteroid.size -= 1;
+
+            if (asteroid.size <= 0) {
+              // Si el tamaño del asteroide es menor o igual a 0, elimínalo
+              variables.asteroids.splice(i, 1);
+              i--;
+            }
+
+            return;
+          }
         }
       }
     }
   }
-}
+};
 
 // Comprueba que la nave haya recogido el objeto de combustible y le suma puntos de combustible
-export function checkFuelCollision() {
-  const {
-    pixelSizeShip,
-    incrementFuelItem
-  } = constants
+export function checkFuelCollision(surface) {
 
   const spacecraftBounds = {
     left: variables.spacecraftX,
@@ -124,9 +129,25 @@ export function checkFuelCollision() {
       spacecraftBounds.bottom > fuelItemBounds.top
     ) {
       if (!fuelItem.collected) {
+        playSfx("pickFuel")
         // La nave ha recogido el objeto de combustible
         variables.fuel += constants.incrementFuelItem // Suma 20 puntos de combustible
         fuelItem.collected = true // Marca el objeto de combustible como recogido
+      }
+    } else {
+      // Si el objeto de combustible colisiona con el terreno, elimínalo del array
+      const columnX = Math.floor(fuelItem.x / constants.terrainUnitWidth);
+      const columnY = Math.floor(fuelItem.y / constants.terrainUnitHeight);
+
+      if (
+        columnX >= 0 &&
+        columnX < surface.length &&
+        columnY >= 0 &&
+        columnY < surface[columnX].length &&
+        surface[columnX][columnY] === constants.pixelTypes.hole
+      ) {
+        variables.fuelItems.splice(i, 1); // Elimina el objeto de combustible del array
+        i--; // Ajusta el índice para evitar problemas con el ciclo
       }
     }
   }
@@ -171,57 +192,58 @@ export function isPixelInsideAsteroid(x, y, asteroid) {
 export const asteroidsCollisions = (surface) => {
   // Actualiza la posición de los asteroides y verifica las colisiones entre ellos
   for (let i = 0; i < variables.asteroids.length; i++) {
-    const asteroidA = variables.asteroids[i]
+    const asteroidA = variables.asteroids[i];
 
     for (let j = i + 1; j < variables.asteroids.length; j++) {
-      const asteroidB = variables.asteroids[j]
+      const asteroidB = variables.asteroids[j];
 
       // Verifica la colisión entre asteroidA y asteroidB
-      if (
-        asteroidA.x < asteroidB.x + asteroidB.size &&
-        asteroidA.x + asteroidA.size > asteroidB.x &&
-        asteroidA.y < asteroidB.y + asteroidB.size &&
-        asteroidA.y + asteroidA.size > asteroidB.y
-      ) {
+      const dx = asteroidA.x - asteroidB.x;
+      const dy = asteroidA.y - asteroidB.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < (asteroidA.size + asteroidB.size) / 2) {
         // Colisión entre asteroidA y asteroidB
 
+        playSfx("hit1")
+
         // Calcula el ángulo entre los asteroides
-        const angle = Math.atan2(asteroidB.y - asteroidA.y, asteroidB.x - asteroidA.x)
+        const angle = Math.atan2(dy, dx);
 
         // Calcula las velocidades en las direcciones X e Y para ambos asteroides
-        const speedA = Math.sqrt(asteroidA.vx * asteroidA.vx + asteroidA.vy * asteroidA.vy)
-        const speedB = Math.sqrt(asteroidB.vx * asteroidB.vx + asteroidB.vy * asteroidB.vy)
+        const speedA = Math.sqrt(asteroidA.vx * asteroidA.vx + asteroidA.vy * asteroidA.vy);
+        const speedB = Math.sqrt(asteroidB.vx * asteroidB.vx + asteroidB.vy * asteroidB.vy);
 
         // Calcula las nuevas velocidades en las direcciones X e Y para ambos asteroides
-        const newVXA = (speedA * Math.cos(angle)) / 2 // Divide la velocidad a la mitad
-        const newVYA = (speedA * Math.sin(angle)) / 2 // Divide la velocidad a la mitad
-        const newVXB = (speedB * Math.cos(angle)) / 2 // Divide la velocidad a la mitad
-        const newVYB = (speedB * Math.sin(angle)) / 2 // Divide la velocidad a la mitad
+        const newVXA = (speedA * Math.cos(angle)) / 2; // Divide la velocidad a la mitad
+        const newVYA = (speedA * Math.sin(angle)) / 2; // Divide la velocidad a la mitad
+        const newVXB = (speedB * Math.cos(angle)) / 2; // Divide la velocidad a la mitad
+        const newVYB = (speedB * Math.sin(angle)) / 2; // Divide la velocidad a la mitad
 
         // Asigna las nuevas velocidades a los asteroides
-        asteroidA.vx = newVXA
-        asteroidA.vy = newVYA
-        asteroidB.vx = newVXB
-        asteroidB.vy = newVYB
+        asteroidA.vx = newVXA;
+        asteroidA.vy = newVYA;
+        asteroidB.vx = newVXB;
+        asteroidB.vy = newVYB;
 
         // Llama a jumpingPixels para simular una explosión
-        const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, asteroidA.size) // -1.5 para una explosión hacia arriba
-        const explosionB = jumpingPixels(asteroidB.x, asteroidB.y, -1.5, asteroidB.size, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
+        const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, asteroidA.size); // -1.5 para una explosión hacia arriba
+        const explosionB = jumpingPixels(asteroidB.x, asteroidB.y, -1.5, asteroidB.size, constants.explosionNumberPixels); // -1.5 para una explosión hacia arriba
 
         // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-        variables.engineParticles.push(...explosionA, ...explosionB)
+        variables.engineParticles.push(...explosionA, ...explosionB);
 
         // Elimina los asteroides que colisionaron
-        variables.asteroids.splice(i, 1)
-        variables.asteroids.splice(j - 1, 1)
-        i-- // Ajusta el índice para evitar problemas con el ciclo
-        break // Sale del ciclo interno para evitar colisiones duplicadas
+        variables.asteroids.splice(i, 1);
+        variables.asteroids.splice(j - 1, 1);
+        i--; // Ajusta el índice para evitar problemas con el ciclo
+        break; // Sale del ciclo interno para evitar colisiones duplicadas
       }
     }
 
     // Verifica colisión de asteroides con el terreno
-    const columnX = Math.floor(asteroidA.x / constants.terrainUnitWidth)
-    const columnY = Math.floor(asteroidA.y / constants.terrainUnitHeight)
+    const columnX = Math.floor(asteroidA.x / constants.terrainUnitWidth);
+    const columnY = Math.floor(asteroidA.y / constants.terrainUnitHeight);
 
     if (
       columnX >= 0 &&
@@ -231,20 +253,21 @@ export const asteroidsCollisions = (surface) => {
       surface[columnX][columnY] === constants.pixelTypes.hole
     ) {
       // Colisión con el terreno
-      variables.asteroids.splice(i, 1) // Elimina el asteroide de la lista
-      i-- // Ajusta el índice para evitar saltarse un asteroide en el siguiente ciclo
+      playSfx("collision")
+      variables.asteroids.splice(i, 1); // Elimina el asteroide de la lista
+      i--; // Ajusta el índice para evitar saltarse un asteroide en el siguiente ciclo
 
       // Llama a jumpingPixels para simular una explosión
-      const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, asteroidA.size * 0.7) // -1.5 para una explosión hacia arriba
+      const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, asteroidA.size * 0.7); // -1.5 para una explosión hacia arriba
       // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-      variables.engineParticles.push(...explosionA)
+      variables.engineParticles.push(...explosionA);
 
       // Crea un objeto para representar el píxel que salta
-      jumpingPixels(asteroidA.x, asteroidA.y, -1.5, asteroidA.size, constants.explosionNumberPixels) // Velocidad inicial hacia arriba (ajusta según tu necesidad)
+      jumpingPixels(asteroidA.x, asteroidA.y, -1.5, asteroidA.size, constants.explosionNumberPixels); // Velocidad inicial hacia arriba (ajusta según tu necesidad)
     } else {
       // Actualiza la posición del asteroide si no ha colisionado con el terreno
-      asteroidA.x += asteroidA.vx
-      asteroidA.y += asteroidA.vy
+      asteroidA.x += asteroidA.vx;
+      asteroidA.y += asteroidA.vy;
     }
   }
-}
+};
