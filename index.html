@@ -14,6 +14,8 @@
       --ui-border-size: 16px;
       --ui-width: 800px;
       --ui-height: 600px;
+      --ui-width-mobile: 100vw; /* 800px; */
+      --ui-height-mobile: 100vh; /* 600px; */
     }
     body {
       margin: 2rem 0;
@@ -66,17 +68,43 @@
       border-radius: 0;
       overflow: hidden;
     }
+    /* Media query para pantallas de más de 475px de ancho */
+    @media screen and (min-width: 476px) {
+      #hud-fuel {
+        height: 2rem;
+        display: flex;
+        align-self: center;
+        width: 100%;
+        max-width: calc(var(--ui-width) + var(--ui-border-size) * 2);
+        margin: 0 auto;
+        background-color: red; /* Change the progress bar color here */
+        border: 1rem calc(var(--ui-border-size) / 2) solid var(--ui-border);
+        border-radius: 0;
+        overflow: hidden;
+      }
+    }
     .hud-fuel__empty {
       background-color: red;
     }
     #gameCanvas {
       margin: 0 auto;
       display: block;
-      width: var(--ui-width);
-      height: var(--ui-height);
+      width: var(--ui-width-mobile);
+      height: var(--ui-height-mobile);
       border: var(--ui-border-size) solid var(--ui-border);
       border-radius: 0 0 2rem 2rem;
       overflow: hidden;
+    }
+    @media screen and (min-width: 476px) {
+      #gameCanvas {
+        margin: 0 auto;
+        display: block;
+        width: var(--ui-width);
+        height: var(--ui-height);
+        border: var(--ui-border-size) solid var(--ui-border);
+        border-radius: 0 0 2rem 2rem;
+        overflow: hidden;
+      }
     }
     .land-success {
       color: green;

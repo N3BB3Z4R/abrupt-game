@@ -5,28 +5,40 @@ const terrainUnitWidth = 2; // Ancho del carácter
 const terrainUnitHeight = 2; // Altura del carácter
 const peakChance = 0.0; // Probabilidad de tener una montaña
 const holeChance = 0.6; // Probabilidad de tener un hueco
-const terrainColor = '#842' // Color del suelo
+const terrainColor = '#332' // Color del suelo
 // Ship Generation
 const spacecraftWidth = 8; // Ancho de la nave
 const spacecraftHeight = 8; // Altura de la nave
 const engineParticles = []; // Almacena los píxeles del escape del motor
 const engineParticleSize = 4; // Tamaño de los píxeles del escape del motor
 const engineHorizontalPower = 0.1; // Fuerza de propulsión horizontal
-let engineVerticalPower = 0.11; // Fuerza de propulsión vertical
-const asteroidProbability = 0.08
-const asteroidAverageSize = 10
-const minAsteroidSize = 12;
-const maxAsteroidSize = 20;
-const asteroidColor = '#D55'
-const asteroidVelocityX = 0.6
-const asteroidVelocityY = 0.6
 const propulsionColors = ['#FFA', '#3FF', '#FD3', '#FF4400']
-const terrainColor = '#842'
-const initialParticleLifespan = 40
-const lifespan = 30
-const explosionNumberPixels = 15
-const explosionParticleSize = 5
-// const lifespan = Math.random() * 30 + 10
+let engineVerticalPower = 0.11; // Fuerza de propulsión vertical
+// Asteroids Generation
+let asteroidProbability = 0.02 // Mutable Probabilidad de que aparezca un asteroide
+const asteroidProbabilityIncrement = 0.0005 // Probabilidad de que aparezca un asteroide
+const asteroidProbabilityIncrementTime = 5 // Seconds to increment the probability
+const asteroidAverageSize = 10 // Tamaño medio de los asteroides
+const minAsteroidSize = 12; // Tamaño mínimo de los asteroides
+const maxAsteroidSize = 20; // Tamaño máximo de los asteroides
+const asteroidColor = '#346' // Color de los asteroides
+const asteroidVelocityX = 0.6 // velocidad horizontal de los asteroides
+const asteroidVelocityY = 0.6 // velocidad vertical de los asteroides
+let pixelSizeAsteroid = null // inicializamos la variable para que no de error
+// Particle Generation
+const initialParticleLifespan = 40 // Vida inicial de los píxeles del escape del motor
+const lifespan = 30 // Vida de los píxeles del escape del motor
+const explosionNumberPixels = 15 // Cantidad de píxeles en la explosión
+const explosionParticleSize = 5 // Tamaño de los píxeles en la explosión
+// Game variables
+const maxLandingSpeed = 1.5; // Velocidad máxima de aterrizaje
+let landed = false; // Estado de aterrizaje
+let crashed = false; // Estado de colisión
+let crushed = false; // Estado de aplastamiento
+let flightTime = 0; // Tiempo de vuelo en segundos
+let elapsedTime = 0; // Tiempo transcurrido desde el inciio del juego
+let startTime; // Tiempo de inicio del juego
+let isGameOver = false; // Estado de juego terminado
 
 // GENERATE TERRAIN
 function generateTerrain(width, height) {
@@ -90,16 +102,16 @@ const asteroidShape = [
   [' ', '#', '#', ' '],
 ];
 
-const pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
 
 function createAsteroid() {
+  pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
   const thisAsteroidSize = pixelSizeAsteroid
   const asteroid = {
     x: Math.random() * canvas.width,
     y: 0, // Inicialmente, los asteroides aparecen en la parte superior del lienzo
     vx: (Math.random() - asteroidVelocityX) * 2, // Velocidad horizontal aleatoria
     vy: Math.random() * asteroidVelocityY + 1, // Velocidad vertical aleatoria
-    size: Math.random() * 10 + asteroidAverageSize, // Tamaño aleatorio
+    size: pixelSizeAsteroid, // Tamaño aleatorio
     shape: asteroidShape, // Matriz que representa la forma del asteroide
   };
 
@@ -110,13 +122,13 @@ function createAsteroid() {
   asteroids.push(asteroid);
 
   // si hay más de 50 asteroides en el array, eliminar los primeros 30
-  if (asteroids.length > 40) {
-    asteroids.splice(0, 10);
-  }
+  // if (asteroids.length > 40) {
+  //   asteroids.splice(0, 10);
+  // }
 }
 
 function drawAsteroid(context, asteroid) {
-  const thisAsteroidSize = pixelSizeAsteroid
+  const thisAsteroidSize = asteroid.size;
   context.fillStyle = asteroidColor; // Color de los asteroides
   for (let row = 0; row < asteroid.shape.length; row++) {
     for (let col = 0; col < asteroid.shape[0].length; col++) {
@@ -132,6 +144,52 @@ function drawAsteroid(context, asteroid) {
     }
   }
 }
+
+// CREATE FUEL ITEMS
+const fuelItems = [];
+const fuelColor = "#FF0000";
+const fuelItemsToKeep = [];
+let fuelVelocityY = 0.6;
+const fuelQuantityToAdd = 20;
+const fuelSize = 4;
+const fuelShape = [
+  [' ', ' ', 'F', 'F', 'F'],
+  ['F', ' ', 'F', ' ', 'F'],
+  [' ', 'F', 'F', 'F', 'F'],
+  [' ', 'F', 'F', 'F', 'F'],
+  [' ', 'F', 'F', 'F', 'F'],
+  [' ', 'F', 'F', 'F', 'F'],
+];
+
+function createFuelItem() {
+  const fuelItem = {
+    x: Math.random() * canvas.width,
+    y: 0, // Inicialmente, los objetos de fuel aparecen en la parte superior del lienzo
+    size: fuelSize, // Tamaño fijo para los objetos de fuel
+    shape: fuelShape, // Matriz que representa la forma del objeto de fuel
+    collected: false, // Indica si el objeto de fuel ha sido recogido
+  };
+
+  fuelItems.push(fuelItem);
+}
+
+function drawFuelItem(context, fuelItem) {
+  context.fillStyle = fuelColor; // Color rojo para los objetos de fuel
+  for (let row = 0; row < fuelItem.shape.length; row++) {
+    for (let col = 0; col < fuelItem.shape[0].length; col++) {
+      const pixel = fuelItem.shape[row][col];
+      if (pixel === 'F' && !fuelItem.collected) {
+        context.fillRect(
+          fuelItem.x + col * fuelItem.size,
+          fuelItem.y + row * fuelItem.size,
+          fuelItem.size,
+          fuelItem.size
+        );
+      }
+    }
+  }
+}
+
 
 // DRAW SHIP
 // Define la forma de la nave espacial como una matriz de píxeles
@@ -185,14 +243,16 @@ let velocityX = 0;
 let velocityY = 0;
 let fuel = 100;
 
+// CONTROLES
 // Variables para rastrear las teclas presionadas por el jugador
 let gamePaused = true; // Inicia el juego en pausa
 let leftKeyPressed = false; // Tecla A
 let rightKeyPressed = false; // Tecla D
 let upKeyPressed = false; // Tecla W
 
-// Agregar eventos de teclado para detectar las teclas presionadas
+// CONTROLES TECLADO Agregar eventos de teclado para detectar las teclas presionadas
 document.addEventListener("keydown", function (event) {
+  // añade aqui la variable de movimiento del raton en eje X
   if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") {
     leftKeyPressed = true;
   } else if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") {
@@ -218,7 +278,7 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-// Agregar eventos de teclado para detectar las teclas que dejan de ser presionadas
+// CONTROLES TECLADO Agregar eventos de teclado para detectar las teclas que dejan de ser presionadas
 document.addEventListener("keyup", function (event) {
   if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") {
     leftKeyPressed = false;
@@ -234,6 +294,86 @@ document.addEventListener("keyup", function (event) {
     // Puedes realizar alguna acción adicional aquí si es necesario
   }
 });
+
+// CONTROLES RATON Agregar eventos de raton
+document.addEventListener("mousedown", function (event) {
+  // Verifica si se hizo clic en el botón izquierdo del ratón
+  if (event.button === 0) {
+    upKeyPressed = true;
+  }
+})
+document.addEventListener("mouseup", function (event) {
+  // Verifica si se soltó el botón izquierdo del ratón
+  if (event.button === 0) {
+    upKeyPressed = false;
+  }
+});
+document.addEventListener("mousemove", function (event) {
+  // Obtén la posición actual del ratón en el eje X
+  const mouseX = event.clientX;
+
+  // Define un umbral para determinar la mitad de la pantalla
+  const screenHalf = window.innerWidth / 2;
+
+  // Comprueba si el ratón está a la izquierda o a la derecha de la mitad de la pantalla
+  if (mouseX < screenHalf) {
+    // El ratón está a la izquierda de la mitad de la pantalla, puedes hacer algo para mover a la izquierda
+    leftKeyPressed = true;
+    rightKeyPressed = false; // Asegúrate de que no se esté presionando la tecla de mover a la derecha
+  } else {
+    // El ratón está a la derecha de la mitad de la pantalla, puedes hacer algo para mover a la derecha
+    rightKeyPressed = true;
+    leftKeyPressed = false; // Asegúrate de que no se esté presionando la tecla de mover a la izquierda
+  }
+});
+
+// CONTROLES MOVIL
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener("touchstart", function (event) {
+  // Obtén la posición X del primer toque
+  touchStartX = event.touches[0].clientX;
+
+  // Realiza alguna acción cuando se inicia el toque (por ejemplo, mover hacia arriba)
+  upKeyPressed = true;
+});
+
+document.addEventListener("touchend", function (event) {
+  // Obtén la posición X del último toque
+  touchEndX = event.changedTouches[0].clientX;
+
+  // Calcula la distancia entre el inicio y el final del toque
+  const touchDistanceX = touchEndX - touchStartX;
+
+  // Define un umbral para determinar si el deslizamiento fue hacia la izquierda o hacia la derecha
+  const swipeThreshold = 50; // Puedes ajustar este valor según tus necesidades
+
+  if (touchDistanceX < -swipeThreshold) {
+    // Deslizamiento hacia la izquierda, puedes hacer algo para mover a la izquierda
+    leftKeyPressed = true;
+    rightKeyPressed = false; // Asegúrate de que no se esté presionando la tecla de mover a la derecha
+  } else if (touchDistanceX > swipeThreshold) {
+    // Deslizamiento hacia la derecha, puedes hacer algo para mover a la derecha
+    rightKeyPressed = true;
+    leftKeyPressed = false; // Asegúrate de que no se esté presionando la tecla de mover a la izquierda
+  } else {
+    // Realiza alguna acción si el deslizamiento no alcanza el umbral (por ejemplo, saltar)
+    // Puedes personalizar esta acción según las necesidades de tu juego
+  }
+
+  // Realiza alguna acción cuando se finaliza el toque (por ejemplo, dejar de mover hacia arriba)
+  upKeyPressed = false;
+});
+
+
+// Evitar el desplazamiento de la página en dispositivos móviles al tocar y deslizar
+document.body.addEventListener("touchmove", function (event) {
+  event.preventDefault();
+});
+
+// Agregar más eventos táctiles según sea necesario para tu juego
+
 
 // Función jumpingPixels para simular una explosión de 5 píxeles
 function jumpingPixels(x, y, velocityY) {
@@ -348,6 +488,7 @@ function updateSpacecraft() {
       // Comprobar si la velocidad de la nave es demasiado alta para aterrizar
       if (Math.abs(velocityX) > maxLandingSpeed || Math.abs(velocityY) > maxLandingSpeed) {
         // Colisión con el suelo
+        isGameOver = true;
         crashed = true; // Establecer el estado de aterrizaje
         engineVerticalPower = 0
         velocityY = 0;
@@ -558,11 +699,16 @@ function updateSpacecraft() {
 
 // DRAW HUD
 function drawHUD() {
-  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
+  const hud = document.getElementById('hud');
+  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />
+                      Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />
+                      Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}<br />
+                      Flight time: ${flightTime.toFixed(2)} seconds</span>`;
+  // const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
   const dataLanded = `<span class="land-success">¡Aterrizaje exitoso!</span>`;
   const dataForceLanded = `<span class="land-success">¡Aterrizaje exitoso pero con daños!</span>`;
   const dataCrashed = `<span class="land-fail">¡Demasiado rápido!</span>`;
-  const dataCrushed = `<span class="land-fail">¡Aplastado por un meteorito!</span>`;
+  const dataCrushed = `<span class="land-fail">¡Derribado por un meteorito!</span>`;
   const dataNoFuel = `<span class="land-fail">¡Sin combustible!</span>`;
   // termina el juego
   if (landed && !crushed) {
@@ -579,15 +725,103 @@ function drawHUD() {
     hud.innerHTML = dataPlaying;
   }
 }
+// DRAW TIME COUNTER ON CANVAS
+function drawTime(context) {
+  context.font = "30px Arial";
+  context.fillStyle = "white";
+  context.fillText(`Time: ${elapsedTime.toFixed(2)}s`, 10, 30);
+}
 
 // GAME LOOP
 function gameLoop() {
   // Limpia el lienzo solo si el juego no está pausado
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (!gamePaused) {
+    // Actualiza el tiempo de vuelo solo si el juego no está pausado
+    if (!gamePaused && !landed && !crashed && !crushed) {
+      flightTime += 1 / 60; // Asumiendo 60 cuadros por segundo
+    }
 
+    if (!isGameOver && !landed && !crashed) {
+      // Calcular el tiempo transcurrido solo si el juego está en curso
+      if (!startTime) {
+        startTime = new Date();
+      } else {
+        const currentTime = new Date();
+        elapsedTime = (currentTime - startTime) / 1000; // Convertir a segundos
+
+        // Aumenta asteroidProbability cada N segundos
+        if (elapsedTime > asteroidProbabilityIncrementTime) {
+          asteroidProbability += asteroidProbabilityIncrement;
+          // startTime = currentTime; // Reinicia el tiempo de inicio
+        }
+      }
+    }
+    // Dibujar el tiempo en el canvas
+    drawTime(context);
     // Dibuja el HUD
     drawHUD();
+
+    // Generar un nuevo objeto de fuel si no hay objetos de fuel en pantalla
+    if (!fuelItems.some(fuelItem => !fuelItem.collected)) {
+      createFuelItem();
+    }
+    // Mover y dibujar objetos de fuel
+    for (const fuelItem of fuelItems) {
+      if (!fuelItem.collected) {
+        fuelItem.y += fuelVelocityY; // Puedes ajustar la velocidad como desees
+        drawFuelItem(context, fuelItem); // Dibuja el objeto de fuel
+        fuelItemsToKeep.push(fuelItem); // Agrega los objetos de combustible que no se deben eliminar
+      }
+    }
+    // fuelItems = [...fuelItemsToKeep]; // Reemplaza el array original
+    // Borrar objetos de fuel si colisionan con el terreno
+    fuelItems.forEach((fuelItem, index) => {
+      if (fuelItem.collected || fuelItem.y >= canvas.height) {
+        fuelItems.splice(index, 1); // Elimina el objeto de combustible
+        fuel += fuelQuantityToAdd
+      }
+    });
+    // Añade N puntos de fuel al colisionar con el objeto de fuel
+    function collectFuelItem(fuelItem) {
+      if (!fuelItem.collected && isCollidingWith(fuelItem)) {
+        fuelItem.collected = true;
+        fuel += 50; // Incrementamos la cantidad de combustible en 50 puntos a nivel global
+      }
+    }
+
+    // Función para verificar colisiones entre la nave y un objeto de combustible
+    function isCollidingWith(fuelItem) {
+      // Supongamos que la nave y el objeto de combustible tienen propiedades `x`, `y`, `width` y `height` que representan su posición y tamaño.
+      // Debes ajustar estas propiedades según la estructura de tus objetos.
+
+      // Coordenadas de la nave y el objeto de combustible
+      const naveX = nave.x;
+      const naveY = nave.y;
+      const fuelX = fuelItem.x;
+      const fuelY = fuelItem.y;
+
+      // Tamaño de la nave y el objeto de combustible
+      const naveWidth = nave.width;
+      const naveHeight = nave.height;
+      const fuelWidth = fuelItem.width;
+      const fuelHeight = fuelItem.height;
+
+      // Definir la distancia mínima para considerar una colisión (puede ajustarse según tus necesidades)
+      const minDistanceX = (naveWidth + fuelWidth) / 2;
+      const minDistanceY = (naveHeight + fuelHeight) / 2;
+
+      // Calcular la distancia entre el centro de la nave y el centro del objeto de combustible
+      const deltaX = Math.abs(naveX - fuelX);
+      const deltaY = Math.abs(naveY - fuelY);
+
+      // Si la distancia en ambos ejes es menor que la distancia mínima, hay una colisión
+      if (deltaX < minDistanceX && deltaY < minDistanceY) {
+        return true; // Colisión detectada
+      }
+
+      return false; // No hay colisión
+    }
 
     // Crear asteroides con cierta probabilidad
     if (Math.random() < asteroidProbability) {
@@ -658,28 +892,34 @@ function drawFinalScore() {
 // Reiniciar el juego
 function restartGame() {
   // Restablece todas las variables y estados del juego al estado inicial
-  gamePaused = true;
-  leftKeyPressed = false;
-  rightKeyPressed = false;
-  upKeyPressed = false;
-  landed = false;
-  crashed = false;
-  crushed = false;
-  fuel = 100;
-  spacecraftX = 100;
-  spacecraftY = 50;
-  velocityX = 0;
-  velocityY = 0.11;
-  flightTime = 0;
-  isGameOver = false;
-  asteroids.length = 0;
-  engineParticles.length = 0;
-  // Regenera el terreno si es necesario
-  surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight);
-  // Limpia el lienzo
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  // Dibuja el HUD inicial
-  drawHUD();
+
+  // gamePaused = true;
+  // leftKeyPressed = false;
+  // rightKeyPressed = false;
+  // upKeyPressed = false;
+  // landed = false;
+  // crashed = false;
+  // crushed = false;
+  // fuel = 100;
+  // spacecraftX = 100;
+  // spacecraftY = 50;
+  // velocityX = 0;
+  // velocityY = 0.11;
+  // flightTime = 0;
+  // isGameOver = false;
+  // asteroids.length = 0;
+  // engineParticles.length = 0;
+  // asteroidProbability = 0.08; // Restablece la probabilidad de asteroides
+  // startTime = null; // Reinicia el tiempo de inicio
+  // // Regenera el terreno si es necesario
+  // surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight);
+  // // Limpia el lienzo
+  // context.clearRect(0, 0, canvas.width, canvas.height);
+  // // Dibuja el HUD inicial
+  // drawHUD();
+
+  // FORCE reload page
+  location.reload(true);
 }
 
 // Inicia el juego
@@ -692,19 +932,26 @@ gameLoop();
 
 // TODO: Que el giro de la nave sea rotatorio en lugar de giro fijo a cada lado
 // TODO: Arreglar contador de tiempo final que parpadea raro
-// TODO: Arreglar bug perdida potencia al reiniciar juego
+// DONE: Arreglar bug perdida potencia al reiniciar juego
 // TODO: Arreglar generador de terrenos, hacer mas aleatorio
-// TODO: Añadir items de fuel aleatoriamente en pantalla para aguantar mas tiempo
+// TODO: Implementar diferentes tipos de asteroides
+// DONE: Añadir items de fuel aleatoriamente en pantalla para aguantar mas tiempo
+// TODO: Arreglar la suma de Fuel con el item
 // TODO: Que al aterrizar la nave se quede en el suelo quieta
 // TODO: Pintar mensajes de textos de eventos en el centro de la pantalla, hacer funcion unica para pintar mensajes
 // TODO: Hacer controles de dificultad
 // TODO: Hacer historico de puntuacion
+// TODO: Flashazo rojo cuando la nave es golpeada por un asteroide o el suelo
 // TODO: Modularizar codigo
+// DONE: Hacer Controles para raton
+// TODO: Arreglar Controles para movil
+// TODO: Arreglar vista de movil
 // TODO: Convertir en PWA
+// TODO: Poner font pixel art
 // TODO: Hacer Graficos
 // TODO: Quiza? Hacer que el mapa se desplace en scroll
 // DONE: Arreglar colision nave con asteroides
 // DONE: Crear asteroides de varios pixeles que se muevan por el mapa a diferente velocidad
 // DONE: Centrar el propulsor con la nave
-// DONE: Refactorizar el jumpingPixel para que genere l
-// TODO: Quiza? Hacer que el mapa se desplace en scroll
+// DONE: Refactorizar el jumpingPixel para que genere la explosion al chocar contra el terreno, o la nave con l asteroide o el choque entre asteroides
+// DONE: Poner contador de tiempo de nave en el aire, y que se pare cuando toca el suelo
