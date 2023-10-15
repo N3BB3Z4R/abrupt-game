@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Abrupt</title>
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+    }
+    #hud {
+      /* position: absolute; */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      line-height: 1.5rem;
+      font-size: 1.2rem;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-transform: uppercase;
+      text-align: center;
+      top: 1rem;
+      left: 1rem;
+      width: 20rem;
+      height: 6rem;
+      margin: 0 auto;
+      pointer-events: none;
+      z-index: 100;
+      color: rgb(237, 171, 171);
+      background: rgba(0, 0, 0, 0.5);
+      border: 4px solid rgb(107, 37, 37);
+      border-radius: 2rem;
+    }
+    #hud-fuel {
+      height: 2rem;
+      display: flex;
+      align-self: center;
+      width: 100%;
+      max-width: 810px;
+      margin: 0 auto;
+      background-color: red; /* Change the progress bar color here */
+      border: 4px rgb(107, 37, 37) solid;
+      border-radius: 3rem 3rem 0 0;
+      overflow: hidden;
+    }
+    .hud-fuel__empty {
+      background-color: red;
+    }
+    #gameCanvas {
+      margin: 0 auto;
+      display: block;
+      width: 800px;
+      height: 600px;
+      border: 5px rgb(107, 37, 37) solid;
+      border-radius: 0 0 2rem 2rem;
+      overflow: hidden;
+    }
+    .land-success {
+      color: green;
+    }
+    .land-fail {
+      color: red;
+    }
+  </style>
+
+  <body>
+    <div id="hud">
+    </div>
+    <progress id="hud-fuel" max="100" value="100"></progress>
+    <!-- <canvas id="terrain"></canvas> -->
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script src="/core/engine.js"></script>
+    <!-- <script src="/core/terrain-generator.js"></script> -->
+  </body>
+  <!-- <footer><a href="https://videojuegosantiguos.blogspot.com/2013/06/lunar-lander-atari-1979.html" >Based on Lunar Lander</a></footer> -->
+</html>
