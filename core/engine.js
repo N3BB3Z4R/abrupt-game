@@ -27,6 +27,12 @@ const initialParticleLifespan = 40
 const lifespan = 30
 const explosionNumberPixels = 15
 const explosionParticleSize = 5
+let pixelSizeAsteroid = null
+
+let flightTime = 0; // Tiempo de vuelo en segundos
+let elapsedTime = 0;
+let startTime;
+let isGameOver = false;
 // const lifespan = Math.random() * 30 + 10
 
 // GENERATE TERRAIN
@@ -91,16 +97,16 @@ const asteroidShape = [
   [' ', '#', '#', ' '],
 ];
 
-const pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
 
 function createAsteroid() {
+  pixelSizeAsteroid = Math.random(maxAsteroidSize + minAsteroidSize / 2) * 8
   const thisAsteroidSize = pixelSizeAsteroid
   const asteroid = {
     x: Math.random() * canvas.width,
     y: 0, // Inicialmente, los asteroides aparecen en la parte superior del lienzo
     vx: (Math.random() - asteroidVelocityX) * 2, // Velocidad horizontal aleatoria
     vy: Math.random() * asteroidVelocityY + 1, // Velocidad vertical aleatoria
-    size: Math.random() * 10 + asteroidAverageSize, // Tamaño aleatorio
+    size: pixelSizeAsteroid, // Tamaño aleatorio
     shape: asteroidShape, // Matriz que representa la forma del asteroide
   };
 
@@ -117,7 +123,7 @@ function createAsteroid() {
 }
 
 function drawAsteroid(context, asteroid) {
-  const thisAsteroidSize = pixelSizeAsteroid
+  const thisAsteroidSize = asteroid.size;
   context.fillStyle = asteroidColor; // Color de los asteroides
   for (let row = 0; row < asteroid.shape.length; row++) {
     for (let col = 0; col < asteroid.shape[0].length; col++) {
@@ -345,6 +351,7 @@ function updateSpacecraft() {
       // Comprobar si la velocidad de la nave es demasiado alta para aterrizar
       if (Math.abs(velocityX) > maxLandingSpeed || Math.abs(velocityY) > maxLandingSpeed) {
         // Colisión con el suelo
+        isGameOver = true;
         crashed = true; // Establecer el estado de aterrizaje
         engineVerticalPower = 0
         velocityY = 0;
@@ -554,7 +561,12 @@ function updateSpacecraft() {
 
 // DRAW HUD
 function drawHUD() {
-  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
+  const hud = document.getElementById('hud');
+  const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />
+                      Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />
+                      Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}<br />
+                      Flight time: ${flightTime.toFixed(2)} seconds</span>`;
+  // const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
   const dataLanded = `<span class="land-success">¡Aterrizaje exitoso!</span>`;
   const dataForceLanded = `<span class="land-success">¡Aterrizaje exitoso pero con daños!</span>`;
   const dataCrashed = `<span class="land-fail">¡Demasiado rápido!</span>`;
@@ -575,13 +587,34 @@ function drawHUD() {
     hud.innerHTML = dataPlaying;
   }
 }
+// DRAW TIME COUNTER ON CANVAS
+function drawTime(context) {
+  context.font = "30px Arial";
+  context.fillStyle = "white";
+  context.fillText(`Time: ${elapsedTime.toFixed(2)}s`, 10, 30);
+}
 
 // GAME LOOP
 function gameLoop() {
   // Limpia el lienzo solo si el juego no está pausado
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (!gamePaused) {
+    // Actualiza el tiempo de vuelo solo si el juego no está pausado
+    if (!gamePaused && !landed && !crashed && !crushed) {
+      flightTime += 1 / 60; // Asumiendo 60 cuadros por segundo
+    }
 
+    if (!isGameOver && !landed && !crashed) {
+      // Calcular el tiempo transcurrido solo si el juego está en curso
+      if (!startTime) {
+        startTime = new Date();
+      } else {
+        const currentTime = new Date();
+        elapsedTime = (currentTime - startTime) / 1000; // Convertir a segundos
+      }
+    }
+    // Dibujar el tiempo en el canvas
+    drawTime(context);
     // Dibuja el HUD
     drawHUD();
 
@@ -685,5 +718,5 @@ gameLoop();
 // TODO: Convertir en PWA
 // TODO: Hacer Graficos
 // DONE: Refactorizar el jumpingPixel para que genere la explosion al chocar contra el terreno, o la nave con l asteroide o el choque entre asteroides
-
+// DONE: Poner contador de tiempo de nave en el aire, y que se pare cuando toca el suelo
 // TODO: Quiza? Hacer que el mapa se desplace en scroll
