@@ -12,6 +12,7 @@
 // TODO: Arreglar Controles para movil
 // TODO: Arreglar vista de movil
 // TODO: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
+// TODO: Hacer Iconos de la PWA
 // TODO: Convertir en PWA
 // TODO: Hacer Graficos
 // TODO: Quiza? Hacer que el mapa se desplace en scroll
