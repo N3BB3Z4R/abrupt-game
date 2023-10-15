@@ -11,6 +11,11 @@
   /* 600px; */
 }
 
+@font-face {
+  font-family: 'pixelfont';
+  src: url('./public/minecraftia.ttf') format('truetype');
+}
+
 body {
   margin: 2rem 0;
   padding: 0;
@@ -35,7 +40,8 @@ body {
 
 #hud {
   /* position: absolute; */
-  display: flex;
+  display: none;
+  /* flex; */
   justify-content: center;
   align-items: center;
   flex-direction: column;
@@ -75,15 +81,18 @@ body {
 
 progress::-moz-progress-bar {
   background: var(--ui-border);
+  border-radius: 1rem 1rem 0 0;
 }
 
 progress::-webkit-progress-value {
   background: var(--ui-border);
+  border-radius: 1rem 1rem 0 0;
 }
 
 progress {
   color: var(--ui-border);
   background-color: var(--ui-border);
+  border-radius: 1rem 1rem 0 0;
 }
 
 /* Media query para pantallas de más de 475px de ancho */
@@ -95,10 +104,10 @@ progress {
     width: 100%;
     max-width: calc(var(--ui-width) + var(--ui-border-size) * 2);
     margin: 0 auto;
-    background-color: red;
+    border-radius: 1rem 1rem 0 0;
+    background-color: rgba(255, 38, 0, 0.767);
     /* Change the progress bar color here */
     border: 1rem calc(var(--ui-border-size) / 2) solid var(--ui-border);
-    border-radius: 0;
     overflow: hidden;
   }
 }
@@ -116,11 +125,30 @@ progress {
     linear-gradient(to bottom,
       #43eb00,
       rgba(0, 0, 0, 0)) 1 100%; */
-  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
   transition: 300ms ease-in-out;
 }
 
-.display-wrapper-red {
+.glow-green {
+  transition: 300ms ease-in-out;
+  box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  animation: pulseBoxShadow 2s infinite;
+}
+
+@keyframes pulseBoxShadow {
+  0% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  }
+
+  50% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0030, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #43eb0078;
+  }
+
+  100% {
+    box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
+  }
+}
+
+.glow-red {
   transition: 300ms ease-in-out;
   box-shadow: 0 0 10px #ffffffbb, 0 0 20px #ffffff67, 0 0 30px #43eb0078, 0 0 40px #48d80f5b, 0 0 50px #3e9f17a7, 0 0 60px #297e0783, 0 0 70px #d7e9d034;
 }

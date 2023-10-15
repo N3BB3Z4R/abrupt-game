@@ -5,6 +5,8 @@
 //#
 //#############################
 
+import { variables, constants } from "./Config"
+
 // DRAW HUD
 export function drawHUD(crashed, crushed, landed, velocityY, fuel, spacecraftX, spacecraftY, flightTime) {
   const hud = document.getElementById("hud")
@@ -12,7 +14,7 @@ export function drawHUD(crashed, crushed, landed, velocityY, fuel, spacecraftX, 
                       Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />
                       Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}<br />
                       Flight time: ${flightTime.toFixed(2)} seconds</span>`
-  // const dataPlaying = `<span>Fuel: ${fuel.toFixed(2)}<br />Falling velocity: ${velocityY - 0 ? velocityY.toFixed(2) : 0}<br />Position: ${spacecraftX.toFixed(2)}, ${spacecraftY.toFixed(2)}</span>`;
+
   const dataLanded = "<span class=\"land-success\">¡Aterrizaje exitoso!</span>"
   const dataForceLanded = "<span class=\"land-success\">¡Aterrizaje exitoso pero con daños!</span>"
   const dataCrashed = "<span class=\"land-fail\">¡Demasiado rápido!</span>"
@@ -34,34 +36,14 @@ export function drawHUD(crashed, crushed, landed, velocityY, fuel, spacecraftX, 
   }
 }
 
-// DRAW SPEED COUNTER ON CANVAS
-export function drawSpeed(context, velocityY) {
-  context.font = "30px Arial"
-  context.fillStyle = "white"
-
-  // Coloca el texto en la esquina superior derecha
-  const x = context.canvas.width - 220 // Ajusta el valor para mover el texto hacia la izquierda o derecha
-  const y = 30 // Ajusta el valor para mover el texto hacia arriba o abajo
-
-  context.fillText(`Propulsion: ${velocityY < 0 ? Math.abs(velocityY.toFixed(2)) : 0}`, x, y)
-  // if the velocityY is greater than 0 turn text into red
-}
-
-// DRAW TIME COUNTER ON CANVAS
-export function drawTime(context, elapsedTime) {
-  context.font = "30px Arial"
-  context.fillStyle = "white"
-  context.fillText(`Time: ${elapsedTime.toFixed(2)}s`, 10, 30)
-}
-
 export function drawPausedText(text, canvas, context) {
-  context.font = "30px Arial"
+  context.font = "30px pixelfont"
   context.fillStyle = "white"
   context.fillText(text, canvas.width / 2 - 60, canvas.height / 2)
 }
 
 export function drawTextOnScreen(text, context, canvas) {
-  context.font = "30px Arial"
+  context.font = "30px pixelfont"
   context.fillStyle = "white"
 
   // Calcula las coordenadas para centrar el texto en el eje x
@@ -75,8 +57,48 @@ export function drawTextOnScreen(text, context, canvas) {
 }
 
 export function drawFinalScore(context, canvas, elapsedTime) {
-  context.font = "30px Arial"
+  context.font = "30px pixelfont"
   context.fillStyle = "yellow"
   const finalScore = `${elapsedTime.toFixed(2)}s`
   context.fillText(finalScore, canvas.width / 2 - 30, canvas.height / 2)
+}
+
+export function drawTime(context, canvas) {
+  context.font = "30px pixelfont";
+  context.fillStyle = "white";
+  const text = `🕑 ${variables.elapsedTime.toFixed(2)}s`;
+  const textWidth = context.measureText(text).width;
+  const x = (canvas.width - textWidth) / 2;
+  const y = 4; // Ajuste para 4 píxeles por debajo del borde superior
+  context.fillText(text, x, 30 + y + 20); // Agregar "y" al valor vertical (30) para mover el texto hacia abajo
+}
+
+export function drawFuel(context) {
+  context.font = "20px pixelfont";
+  context.fillStyle = "white";
+  context.fillText(`⛽ ${variables.fuel.toFixed(2)}`, 10, 30 + 10); // Agregar 4 al valor vertical (30) para mover el texto hacia abajo
+}
+
+export function drawSpeed(context, velocityY) {
+  context.font = "20px pixelfont";
+  context.fillStyle = "white";
+
+  // Coloca el texto en la esquina superior derecha
+  const x = context.canvas.width - 120; // Ajusta el valor para mover el texto hacia la izquierda o derecha
+  const y = 30 + 4; // Ajusta el valor para mover el texto hacia abajo en 4 píxeles
+  context.fillText(`🚀 ${velocityY < 0 ? Math.abs(velocityY.toFixed(2)) : 0}`, x, y + 8);
+}
+
+export function paintHitInBorder() {
+  const displayWrapper = document.querySelector(".display-wrapper");
+
+  // Remove class glow-green and add glow-red
+  displayWrapper.classList.remove("glow-green");
+  displayWrapper.classList.add("glow-red");
+
+  // Wait 400ms and restore glow-green
+  setTimeout(() => {
+    displayWrapper.classList.remove("glow-red");
+    displayWrapper.classList.add("glow-green");
+  }, 400);
 }

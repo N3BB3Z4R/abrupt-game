@@ -11,10 +11,9 @@
 import { generateTerrain, drawTerrain } from "./Terrain.js"
 import { createAsteroid, drawAsteroid } from "./Asteroid.js"
 import { drawSpacecraft, spacecraftShape } from "./Spacecraft.js" // updateSpacecraft
-// import { checkFuelCollision } from './Collisions.js'
-import { isPixelInsideAsteroid, shipCollisionsWithTerrain } from './Collisions.js' // shipCollisionsWithAsteroids
-import { drawHUD, drawSpeed, drawTime, drawPausedText, drawTextOnScreen, drawFinalScore } from './Hud.js'
-import { jumpingPixels, updateEngineParticles } from './Particles.js'
+import { isPixelInsideAsteroid, shipCollisionsWithTerrain, shipCollisionsWithAsteroids, asteroidsCollisions, checkFuelCollision } from './Collisions.js' // shipCollisionsWithAsteroids
+import { drawHUD, drawSpeed, drawTime, drawPausedText, drawFuel, drawTextOnScreen, drawFinalScore } from './Hud.js'
+import { jumpingPixels, updateEngineParticles, smokeCrashedShip } from './Particles.js'
 import { drawFuelItem, createFuelItem } from './Fuel.js'
 import { restartGame } from './Utils.js'
 import { constants, variables } from "./Config.js"
@@ -159,170 +158,15 @@ if (isMobile) {
 
 //#############################
 //#
-//#   COLLISIONS
-//#
-//#
-//#############################
-
-// Detecta colisiones de la nave con los asteroides
-const shipCollisionsWithAsteroids = () => {
-  const {
-    pixelSizeShip
-  } = constants
-
-  // Verificar colisiones de nave con asteroides
-  for (let i = 0; i < variables.asteroids.length; i++) {
-    const asteroid = variables.asteroids[i]
-
-    // Verifica si algún píxel de la nave coincide con algún píxel del asteroide
-    for (let row = 0; row < spacecraftShape.length; row++) {
-      for (let col = 0; col < spacecraftShape[0].length; col++) {
-        if (spacecraftShape[row][col] === constants.pixelTypes.ship && isPixelInsideAsteroid(variables.spacecraftX + col * constants.pixelSizeShip, variables.spacecraftY + row * constants.pixelSizeShip, asteroid)) {
-          // if (spacecraftShape[row][col] === pixelTypes.asteroid && isPixelInsideAsteroid(spacecraftX + col * pixelSizeShip, spacecraftY + row * pixelSizeShip, asteroid)) {
-          // Ha ocurrido una colisión entre la nave y el asteroide
-          variables.crushed = true
-
-          // Llama a jumpingPixels para simular una explosión
-          const explosion = jumpingPixels(variables.spacecraftX, variables.spacecraftY, -1.5, pixelSizeShip, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
-          // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-          variables.engineParticles.push(...explosion)
-
-          // Elimina el asteroide
-          variables.asteroids.splice(i, 1)
-          i-- // Ajusta el índice para evitar problemas con el ciclo
-          return // Sale de la función inmediatamente para evitar verificar más colisiones en este fotograma
-        }
-      }
-    }
-  }
-}
-
-const asteroidsCollisions = () => {
-  // Actualiza la posición de los asteroides y verifica las colisiones entre ellos
-  for (let i = 0; i < variables.asteroids.length; i++) {
-    const asteroidA = variables.asteroids[i]
-
-    for (let j = i + 1; j < variables.asteroids.length; j++) {
-      const asteroidB = variables.asteroids[j]
-
-      // Verifica la colisión entre asteroidA y asteroidB
-      if (
-        asteroidA.x < asteroidB.x + asteroidB.size &&
-        asteroidA.x + asteroidA.size > asteroidB.x &&
-        asteroidA.y < asteroidB.y + asteroidB.size &&
-        asteroidA.y + asteroidA.size > asteroidB.y
-      ) {
-        // Colisión entre asteroidA y asteroidB
-
-        // Calcula el ángulo entre los asteroides
-        const angle = Math.atan2(asteroidB.y - asteroidA.y, asteroidB.x - asteroidA.x)
-
-        // Calcula las velocidades en las direcciones X e Y para ambos asteroides
-        const speedA = Math.sqrt(asteroidA.vx * asteroidA.vx + asteroidA.vy * asteroidA.vy)
-        const speedB = Math.sqrt(asteroidB.vx * asteroidB.vx + asteroidB.vy * asteroidB.vy)
-
-        // Calcula las nuevas velocidades en las direcciones X e Y para ambos asteroides
-        const newVXA = (speedA * Math.cos(angle)) / 2 // Divide la velocidad a la mitad
-        const newVYA = (speedA * Math.sin(angle)) / 2 // Divide la velocidad a la mitad
-        const newVXB = (speedB * Math.cos(angle)) / 2 // Divide la velocidad a la mitad
-        const newVYB = (speedB * Math.sin(angle)) / 2 // Divide la velocidad a la mitad
-
-        // Asigna las nuevas velocidades a los asteroides
-        asteroidA.vx = newVXA
-        asteroidA.vy = newVYA
-        asteroidB.vx = newVXB
-        asteroidB.vy = newVYB
-
-        // Llama a jumpingPixels para simular una explosión
-        const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, -1.5, asteroidA.size, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
-        const explosionB = jumpingPixels(asteroidB.x, asteroidB.y, -1.5, asteroidB.size, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
-
-        // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-        variables.engineParticles.push(...explosionA, ...explosionB)
-
-        // Elimina los asteroides que colisionaron
-        variables.asteroids.splice(i, 1)
-        variables.asteroids.splice(j - 1, 1)
-        i-- // Ajusta el índice para evitar problemas con el ciclo
-        break // Sale del ciclo interno para evitar colisiones duplicadas
-      }
-    }
-
-    // Verifica colisión de asteroides con el terreno
-    const columnX = Math.floor(asteroidA.x / constants.terrainUnitWidth)
-    const columnY = Math.floor(asteroidA.y / constants.terrainUnitHeight)
-
-    if (
-      columnX >= 0 &&
-      columnX < surface.length &&
-      columnY >= 0 &&
-      columnY < surface[columnX].length &&
-      surface[columnX][columnY] === constants.pixelTypes.hole
-    ) {
-      // Colisión con el terreno
-      variables.asteroids.splice(i, 1) // Elimina el asteroide de la lista
-      i-- // Ajusta el índice para evitar saltarse un asteroide en el siguiente ciclo
-
-      // Llama a jumpingPixels para simular una explosión
-      const explosionA = jumpingPixels(asteroidA.x, asteroidA.y, -1.5, asteroidA.size, constants.explosionNumberPixels) // -1.5 para una explosión hacia arriba
-      // Agrega los píxeles de la explosión al array engineParticles para que se dibujen
-      variables.engineParticles.push(...explosionA)
-
-      // Crea un objeto para representar el píxel que salta
-      jumpingPixels(asteroidA.x, asteroidA.y, -1.5, asteroidA.size, constants.explosionNumberPixels) // Velocidad inicial hacia arriba (ajusta según tu necesidad)
-    } else {
-      // Actualiza la posición del asteroide si no ha colisionado con el terreno
-      asteroidA.x += asteroidA.vx
-      asteroidA.y += asteroidA.vy
-    }
-  }
-}
-
-// Comprueba que la nave haya recogido el objeto de combustible y le suma puntos de combustible
-function checkFuelCollision(fuelItems) {
-  const spacecraftBounds = {
-    left: variables.spacecraftX,
-    right: variables.spacecraftX + constants.pixelSizeShip * spacecraftShape[0].length,
-    top: variables.spacecraftY,
-    bottom: variables.spacecraftY + constants.pixelSizeShip * spacecraftShape.length,
-  }
-
-  for (let i = 0; i < variables.fuelItems.length; i++) {
-    const fuelItem = variables.fuelItems[i]
-    const fuelItemBounds = {
-      left: fuelItem.x,
-      right: fuelItem.x + fuelItem.size * fuelItem.shape[0].length,
-      top: fuelItem.y,
-      bottom: fuelItem.y + fuelItem.size * fuelItem.shape.length,
-    }
-
-    // Verifica si hay colisión entre la nave y el objeto de combustible
-    if (
-      spacecraftBounds.left < fuelItemBounds.right &&
-      spacecraftBounds.right > fuelItemBounds.left &&
-      spacecraftBounds.top < fuelItemBounds.bottom &&
-      spacecraftBounds.bottom > fuelItemBounds.top
-    ) {
-      if (!fuelItem.collected) {
-        // La nave ha recogido el objeto de combustible
-        variables.fuel += constants.incrementFuelItem // Suma 20 puntos de combustible
-        fuelItem.collected = true // Marca el objeto de combustible como recogido
-      }
-    }
-  }
-}
-
-//#############################
-//#
 //#   SHIP UPDATE AND LOGIC (da guerra)
 //#
 //#
 //#############################
 
 function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, fuelItems) {
-  const {
-    fuelItems
-  } = variables
+  // const {
+  //   fuelItems
+  // } = variables
 
   // Aplicar gravedad lunar
   variables.velocityY += constants.incrementVelocityY // Ajusta este valor según la gravedad lunar deseada
@@ -381,9 +225,9 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
 
   shipCollisionsWithAsteroids(surface, context)
 
-  asteroidsCollisions()
+  asteroidsCollisions(surface)
 
-  checkFuelCollision(fuelItems)
+  checkFuelCollision()
 
   // Aplicar la fuerza de propulsión cuando se presiona la flecha arriba
   if (variables.upKeyPressed && variables.fuel > 0) {
@@ -403,6 +247,7 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
       }
       updateEngineParticles()
 
+
       variables.engineParticles.push(particle)
     }
   }
@@ -410,6 +255,8 @@ function updateSpacecraft() { // leftKeyPressed, rightKeyPressed, upKeyPressed, 
   // Si la nave ha aterrizado, asegúrate de que la velocidad horizontal también sea 0
   if (variables.landed || variables.crashed) {
     variables.velocityX = 0
+    // Si la nave ha chocado contra el suelo, dibuja humo saliendo de la nave
+    smokeCrashedShip(canvas, context)
   }
 
   // Verificar si la nave ha salido de la pantalla
@@ -495,7 +342,7 @@ function gameLoop() {
       }
     }
     // Dibujar el tiempo en el canvas
-    drawTime(context, variables.elapsedTime)
+    drawTime(context, canvas)
     // Dibujar la propulsion en el canvas:
     drawSpeed(context, variables.velocityY)
     // Dibuja el HUD
@@ -510,6 +357,7 @@ function gameLoop() {
       if (!fuelItem.collected) {
         fuelItem.y += variables.fuelVelocityY // Puedes ajustar la velocidad como desees
         drawFuelItem(context, fuelItem) // Dibuja el objeto de fuel
+        drawFuel(context) // Dibuja el fuel
         variables.fuelItemsToKeep.push(fuelItem) // Agrega los objetos de combustible que no se deben eliminar
       }
     }
@@ -521,43 +369,6 @@ function gameLoop() {
         variables.fuel += constants.fuelQuantityToAdd
       }
     })
-    // Añade N puntos de fuel al colisionar con el objeto de fuel
-    function collectFuelItem(fuelItem) {
-      if (!fuelItem.collected && isCollidingWith(fuelItem)) {
-        fuelItem.collected = true
-        variables.fuel += 50 // Incrementamos la cantidad de combustible en 50 puntos a nivel global
-      }
-    }
-
-    // Función para verificar colisiones entre la nave y un objeto de combustible
-    function isCollidingWith(fuelItem) {
-      // Coordenadas de la nave y el objeto de combustible
-      const naveX = nave.x
-      const naveY = nave.y
-      const fuelX = fuelItem.x
-      const fuelY = fuelItem.y
-
-      // Tamaño de la nave y el objeto de combustible
-      const naveWidth = nave.width
-      const naveHeight = nave.height
-      const fuelWidth = fuelItem.width
-      const fuelHeight = fuelItem.height
-
-      // Definir la distancia mínima para considerar una colisión (puede ajustarse según tus necesidades)
-      const minDistanceX = (naveWidth + fuelWidth) / 2
-      const minDistanceY = (naveHeight + fuelHeight) / 2
-
-      // Calcular la distancia entre el centro de la nave y el centro del objeto de combustible
-      const deltaX = Math.abs(naveX - fuelX)
-      const deltaY = Math.abs(naveY - fuelY)
-
-      // Si la distancia en ambos ejes es menor que la distancia mínima, hay una colisión
-      if (deltaX < minDistanceX && deltaY < minDistanceY) {
-        return true // Colisión detectada
-      }
-
-      return false // No hay colisión
-    }
 
     // Crear asteroides con cierta probabilidad
     if (Math.random() < constants.asteroidProbability) {
