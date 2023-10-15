@@ -1,15 +1,14 @@
 
-// Variables globales
+// ### GLOBAL VARIABLES ###
+// Terrain Generation
 const terrainUnitWidth = 2; // Ancho del carácter
 const terrainUnitHeight = 2; // Altura del carácter
 const peakChance = 0.0; // Probabilidad de tener una montaña
 const holeChance = 0.6; // Probabilidad de tener un hueco
-const spacecraftWidth = 8;
-const spacecraftHeight = 8;
-const maxLandingSpeed = 1.5; // Velocidad máxima de aterrizaje
-let landed = false; // Estado de aterrizaje
-let crashed = false; // Estado de colisión
-let crushed = false; // Estado de aplastamiento
+const terrainColor = '#842' // Color del suelo
+// Ship Generation
+const spacecraftWidth = 8; // Ancho de la nave
+const spacecraftHeight = 8; // Altura de la nave
 const engineParticles = []; // Almacena los píxeles del escape del motor
 const engineParticleSize = 4; // Tamaño de los píxeles del escape del motor
 const engineHorizontalPower = 0.1; // Fuerza de propulsión horizontal
@@ -207,7 +206,11 @@ document.addEventListener("keydown", function (event) {
       // Si se reanuda el juego, solicita un nuevo cuadro de animación
       requestAnimationFrame(gameLoop);
     } else {
-      pauseGame()
+      if (isGameOver) {
+        restartGame();
+      } else {
+        pauseGame()
+      }
     }
   } else if (event.key === "r" || event.key === "R") {
     // Tecla R para reiniciar el juego
@@ -361,6 +364,7 @@ function updateSpacecraft() {
         console.log("¡Aterrizaje exitoso!"); // Puedes mostrar un mensaje o realizar otras acciones aquí
       }
       velocityY = 0;
+      drawFinalScore();
     }
   }
 
@@ -629,7 +633,7 @@ function gameLoop() {
   } else {
     fuel === 100 ?
       // mostrar boton para comenzar
-      drawPausedText('"SPACEBAR" TO START') :
+      drawPausedText('SPACEBAR') :
       // mostrar PAUSED cuando pausamos el juego
       drawPausedText('PAUSED')
     // requestAnimationFrame(gameLoop)
@@ -638,9 +642,17 @@ function gameLoop() {
 
 // Function to display "PAUSED" on the canvas.
 function drawPausedText(text) {
-  ctx.font = "30px Arial";
-  ctx.fillStyle = "white";
-  ctx.fillText(text, canvas.width / 2 - 60, canvas.height / 2);
+  context.font = "30px Arial";
+  context.fillStyle = "white";
+  context.fillText(text, canvas.width / 2 - 60, canvas.height / 2);
+}
+
+function drawFinalScore() {
+  context.font = "30px Arial";
+  context.fillStyle = "yellow";
+  // context.fillText(`Time: ${elapsedTime.toFixed(2)}s`, 10, 30);
+  const finalScore = `${elapsedTime.toFixed(2)}s`
+  context.fillText(finalScore, canvas.width / 2 - 30, canvas.height / 2);
 }
 
 // Reiniciar el juego
@@ -657,7 +669,9 @@ function restartGame() {
   spacecraftX = 100;
   spacecraftY = 50;
   velocityX = 0;
-  velocityY = engineVerticalPower;
+  velocityY = 0.11;
+  flightTime = 0;
+  isGameOver = false;
   asteroids.length = 0;
   engineParticles.length = 0;
   // Regenera el terreno si es necesario
@@ -669,21 +683,28 @@ function restartGame() {
 }
 
 // Inicia el juego
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext("2d");
-const context = canvas.getContext('2d');
-const surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight);
+const canvas = document.getElementById('gameCanvas'); // Obtén el elemento canvas
+const context = canvas.getContext('2d'); // Obtén el contexto de dibujo 2D
+const surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight); // Genera el terreno lunar
 const hud = document.getElementById('hud');
 
 gameLoop();
 
-// DONE: Arreglar colision nave con asteroides
 // TODO: Que el giro de la nave sea rotatorio en lugar de giro fijo a cada lado
-// DONE: Crear asteroides de varios pixeles que se muevan por el mapa a diferente velocidad
-// DONE: Centrar el propulsor con la nave
+// TODO: Arreglar contador de tiempo final que parpadea raro
+// TODO: Arreglar bug perdida potencia al reiniciar juego
+// TODO: Arreglar generador de terrenos, hacer mas aleatorio
+// TODO: Añadir items de fuel aleatoriamente en pantalla para aguantar mas tiempo
 // TODO: Que al aterrizar la nave se quede en el suelo quieta
+// TODO: Pintar mensajes de textos de eventos en el centro de la pantalla, hacer funcion unica para pintar mensajes
+// TODO: Hacer controles de dificultad
+// TODO: Hacer historico de puntuacion
+// TODO: Modularizar codigo
 // TODO: Convertir en PWA
 // TODO: Hacer Graficos
-// DONE: Refactorizar el jumpingPixel para que genere la explosion al chocar contra el terreno, o la nave con l asteroide o el choque entre asteroides
-
+// TODO: Quiza? Hacer que el mapa se desplace en scroll
+// DONE: Arreglar colision nave con asteroides
+// DONE: Crear asteroides de varios pixeles que se muevan por el mapa a diferente velocidad
+// DONE: Centrar el propulsor con la nave
+// DONE: Refactorizar el jumpingPixel para que genere l
 // TODO: Quiza? Hacer que el mapa se desplace en scroll
