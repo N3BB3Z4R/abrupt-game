@@ -8,8 +8,15 @@
   </head>
 
   <style>
+    :root {
+      --ui-color: rgb(111, 237, 0);
+      --ui-border: rgb(21, 72, 13);
+      --ui-border-size: 16px;
+      --ui-width: 800px;
+      --ui-height: 600px;
+    }
     body {
-      margin: 0;
+      margin: 2rem 0;
       padding: 0;
       background-color: black;
     }
@@ -26,26 +33,26 @@
       text-align: center;
       top: 1rem;
       left: 1rem;
-      width: 20rem;
+      width: var(--ui-width);
       height: 6rem;
       margin: 0 auto;
       pointer-events: none;
       z-index: 100;
-      color: rgb(237, 171, 171);
+      color: var(--ui-color);
       background: rgba(0, 0, 0, 0.5);
-      border: 4px solid rgb(107, 37, 37);
-      border-radius: 2rem;
+      border: var(--ui-border-size) solid var(--ui-border);
+      border-radius: 2rem 2rem 0 0;
     }
     #hud-fuel {
       height: 2rem;
       display: flex;
       align-self: center;
       width: 100%;
-      max-width: 810px;
+      max-width: calc(var(--ui-width) + var(--ui-border-size) * 2);
       margin: 0 auto;
       background-color: red; /* Change the progress bar color here */
-      border: 4px rgb(107, 37, 37) solid;
-      border-radius: 3rem 3rem 0 0;
+      border: 1rem calc(var(--ui-border-size) / 2) solid var(--ui-border);
+      border-radius: 0;
       overflow: hidden;
     }
     .hud-fuel__empty {
@@ -54,9 +61,9 @@
     #gameCanvas {
       margin: 0 auto;
       display: block;
-      width: 800px;
-      height: 600px;
-      border: 5px rgb(107, 37, 37) solid;
+      width: var(--ui-width);
+      height: var(--ui-height);
+      border: var(--ui-border-size) solid var(--ui-border);
       border-radius: 0 0 2rem 2rem;
       overflow: hidden;
     }
