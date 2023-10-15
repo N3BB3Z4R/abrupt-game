@@ -14,7 +14,7 @@ const engineParticles = []; // Almacena los píxeles del escape del motor
 const engineParticleSize = 4; // Tamaño de los píxeles del escape del motor
 const engineHorizontalPower = 0.1; // Fuerza de propulsión horizontal
 let engineVerticalPower = 0.11; // Fuerza de propulsión vertical
-const asteroidProbability = 0.08
+let asteroidProbability = 0.08
 const asteroidAverageSize = 10
 const minAsteroidSize = 12;
 const maxAsteroidSize = 20;
@@ -27,7 +27,7 @@ const initialParticleLifespan = 40
 const lifespan = 30
 const explosionNumberPixels = 15
 const explosionParticleSize = 5
-let pixelSizeAsteroid = null
+let pixelSizeAsteroid = null // inicializamos la variable para que no de error
 
 let flightTime = 0; // Tiempo de vuelo en segundos
 let elapsedTime = 0;
@@ -117,9 +117,9 @@ function createAsteroid() {
   asteroids.push(asteroid);
 
   // si hay más de 50 asteroides en el array, eliminar los primeros 30
-  if (asteroids.length > 40) {
-    asteroids.splice(0, 10);
-  }
+  // if (asteroids.length > 40) {
+  //   asteroids.splice(0, 10);
+  // }
 }
 
 function drawAsteroid(context, asteroid) {
@@ -611,6 +611,12 @@ function gameLoop() {
       } else {
         const currentTime = new Date();
         elapsedTime = (currentTime - startTime) / 1000; // Convertir a segundos
+
+        // Aumenta asteroidProbability cada 20 segundos
+        if (elapsedTime > 5) {
+          asteroidProbability += 0.10;
+          startTime = currentTime; // Reinicia el tiempo de inicio
+        }
       }
     }
     // Dibujar el tiempo en el canvas
@@ -693,6 +699,8 @@ function restartGame() {
   velocityY = engineVerticalPower;
   asteroids.length = 0;
   engineParticles.length = 0;
+  asteroidProbability = 0.08; // Restablece la probabilidad de asteroides
+  startTime = null; // Reinicia el tiempo de inicio
   // Regenera el terreno si es necesario
   surface = generateTerrain(canvas.width / terrainUnitWidth, canvas.height / terrainUnitHeight);
   // Limpia el lienzo
