@@ -40,6 +40,16 @@ let elapsedTime = 0; // Tiempo transcurrido desde el inciio del juego
 let startTime; // Tiempo de inicio del juego
 let isGameOver = false; // Estado de juego terminado
 
+// 
+const pixelTypes = {
+  space: ' ',
+  mountain: '+',
+  hole: '-',
+  asteroid: 'A',
+  ship: 'S',
+  fuel: 'F',
+}
+
 // GENERATE TERRAIN
 function generateTerrain(width, height) {
   const surface = [];
@@ -930,13 +940,13 @@ const hud = document.getElementById('hud');
 
 gameLoop();
 
+// TODO: Arreglar la suma de Fuel con el item
 // TODO: Que el giro de la nave sea rotatorio en lugar de giro fijo a cada lado
 // TODO: Arreglar contador de tiempo final que parpadea raro
 // DONE: Arreglar bug perdida potencia al reiniciar juego
 // TODO: Arreglar generador de terrenos, hacer mas aleatorio
 // TODO: Implementar diferentes tipos de asteroides
 // DONE: Añadir items de fuel aleatoriamente en pantalla para aguantar mas tiempo
-// TODO: Arreglar la suma de Fuel con el item
 // TODO: Que al aterrizar la nave se quede en el suelo quieta
 // TODO: Pintar mensajes de textos de eventos en el centro de la pantalla, hacer funcion unica para pintar mensajes
 // TODO: Hacer controles de dificultad
