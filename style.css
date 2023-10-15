@@ -16,7 +16,7 @@
   /* src: url('./public/fonts/pixelary.otf'); */
   /* src: url('./public/fonts/pixelfont.ttf') format('truetype'); */
   /* src: url('./public/fonts/retrogaming.ttf') format('truetype'); */
-  src: url('./assets/fonts/minecraftia.ttf') format('truetype');
+  src: url('./assets/minecraftia.ttf') format('truetype');
 }
 
 body {
