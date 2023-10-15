@@ -76,131 +76,110 @@ export function drawSpacecraft(context) {
 //#############################
 
 // export function updateSpacecraft(canvas, surface, context, { fuel, asteroids, fuelItems, spacecraftX, spacecraftY, pixelSizeShip, shipRotationAngle, shipRotationSpeed, velocityY, velocityX, incrementVelocityY, leftKeyPressed, rightKeyPressed, upKeyPressed, engineParticles }) { // leftKeyPressed, rightKeyPressed, upKeyPressed, fuelItems) {
-export function updateSpacecraft(gameProps) {
-  let {
-    velocityY,
-    velocityX,
-    spacecraftX,
-    spacecraftY,
-    leftKeyPressed,
-    rightKeyPressed,
-    upKeyPressed,
-    shipRotationAngle,
-    fuel,
-    landed,
-    crashed,
-    crushed,
-    engineParticles,
-    engineParticleSize,
-    pixelTypes,
-    context
-  } = gameProps
-  const {
-    canvas,
-    incrementVelocityY,
-    engineHorizontalPower,
-    engineVerticalPower,
-  } = gameProps
-
+export function updateSpacecraft(canvas, context, surface) {
   // Aplicar gravedad lunar
-  velocityY += incrementVelocityY // Ajusta este valor según la gravedad lunar deseada
+  variables.velocityY += constants.incrementVelocityY // Ajusta este valor según la gravedad lunar deseada
 
   // Actualizar posición de la nave
-  spacecraftX += velocityX
-  spacecraftY += velocityY
+  variables.spacecraftX += variables.velocityX
+  variables.spacecraftY += variables.velocityY
 
   // Controlar cuando la nave ha salido por el lado izquierdo del lienzo
   let canvasWidth = canvas.width // Coloca la nave en el lado derecho
-  if (spacecraftX < 0) {
+  if (variables.spacecraftX < 0) {
     // La nave ha salido por el lado izquierdo del lienzo
-    spacecraftX = canvasWidth
-  } else if (spacecraftX > canvas.width) {
+    variables.spacecraftX = canvasWidth
+  } else if (variables.spacecraftX > canvas.width) {
     // La nave ha salido por el lado derecho del lienzo
-    spacecraftX = 0 // Coloca la nave en el lado izquierdo
+    variables.spacecraftX = 0 // Coloca la nave en el lado izquierdo
   }
 
   // Actualizar la rotación de la nave según las teclas izquierda y derecha
-  if (leftKeyPressed) {
-    shipRotationAngle -= shipRotationSpeed
-    if (shipRotationAngle < -0.4) {
-      shipRotationAngle = -0.4
+  if (variables.leftKeyPressed) {
+    variables.shipRotationAngle -= variables.shipRotationSpeed
+    if (variables.shipRotationAngle < -0.4) {
+      variables.shipRotationAngle = -0.4
     }
-  } else if (rightKeyPressed) {
-    shipRotationAngle += shipRotationSpeed;
+  } else if (variables.rightKeyPressed) {
+    variables.shipRotationAngle += variables.shipRotationSpeed;
     // Limitar el ángulo de giro a 0.5
-    if (shipRotationAngle > 0.4) {
-      shipRotationAngle = 0.4;
+    if (variables.shipRotationAngle > 0.4) {
+      variables.shipRotationAngle = 0.4;
     }
-  } else if (!leftKeyPressed && !rightKeyPressed) {
+  } else if (!variables.leftKeyPressed && !variables.rightKeyPressed) {
     // actualizar dejar de rotar la nave si las teclas dejan de ser presionadas
-    shipRotationAngle = 0
+    variables.shipRotationAngle = 0
   }
 
   // Actualiza el valor del elemento progress para FUEL
   const hudFuel = document.getElementById("hud-fuel")
-  hudFuel.value = fuel
+  hudFuel.value = variables.fuel
   // change the color of the hud-fuel component if fuel is 0
-  if (fuel === 0) {
+  if (variables.fuel === 0) {
     hudFuel.classList("hud-fuel__empty")
   }
 
   // Calcular los componentes de la fuerza de propulsión
-  const thrustX = Math.sin(shipRotationAngle) * engineHorizontalPower // Ajusta la fuerza según la potencia deseada
-  const thrustY = -Math.cos(shipRotationAngle) * engineVerticalPower // Ajusta la fuerza según la potencia deseada
+  const thrustX = Math.sin(variables.shipRotationAngle) * variables.engineHorizontalPower // Ajusta la fuerza según la potencia deseada
+  const thrustY = -Math.cos(variables.shipRotationAngle) * variables.engineVerticalPower // Ajusta la fuerza según la potencia deseada
 
   // Aplicar la fuerza de propulsión cuando se presiona la flecha arriba
-  if (upKeyPressed && fuel > 0 && !crushed && !crashed && !landed) {
-    velocityX += thrustX
-    velocityY += thrustY
-    fuel -= crushed ? 0.3 : 0.1 // Ajusta este valor según el consumo de combustible
+  if (variables.upKeyPressed && variables.fuel > 0 && !variables.crushed && !variables.crashed && !variables.landed) {
+    playSfx("collision")
+    variables.velocityX += thrustX
+    variables.velocityY += thrustY
+    variables.fuel -= variables.crushed ? 0.3 : 0.1 // Ajusta este valor según el consumo de combustible
   }
 
-  shipCollisionsWithTerrain(surface, engineParticles)
+  shipCollisionsWithTerrain(canvas, surface, context)
 
-  shipCollisionsWithAsteroids(engineParticles, asteroids)
+  shipCollisionsWithAsteroids(surface, context)
 
-  asteroidsCollisions(surface, engineParticles, context)
+  asteroidsCollisions(surface)
 
-  checkFuelCollision(spacecraftX, spacecraftY, fuelItems, fuel, pixelSizeShip)
+  checkFuelCollision()
 
   // Aplicar la fuerza de propulsión cuando se presiona la flecha arriba
-  if (upKeyPressed && fuel > 0) {
-    velocityX += thrustX
-    velocityY += thrustY
-    fuel -= 0.1 // Ajusta este valor según el consumo de combustible
+  if (variables.upKeyPressed && variables.fuel > 0) {
+    variables.velocityX += thrustX
+    variables.velocityY += thrustY
+    variables.fuel -= 0.1 // Ajusta este valor según el consumo de combustible
 
     // Agregar píxeles del escape del motor
     for (let i = 0; i < 5; i++) { // Agrega 5 píxeles en cada impulso
       const particle = {
-        x: spacecraftX + 6,
-        y: spacecraftY + 10, // Posición en la parte inferior de la nave
+        x: variables.spacecraftX + 6,
+        y: variables.spacecraftY + 12, // Posición en la parte inferior de la nave
         velocityX: (Math.random() - 0.5) * 0.2, // Velocidad horizontal aleatoria
         velocityY: Math.random() * 0.5 + 0.2, // Velocidad vertical aleatoria hacia abajo
-        size: engineParticleSize, // Tamaño fijo de los píxeles del escape del motor
-        lifespan: lifespan, // Vida aleatoria
+        size: constants.engineParticleSize, // Tamaño fijo de los píxeles del escape del motor
+        lifespan: constants.lifespan, // Vida aleatoria
       }
-      updateEngineParticles(engineParticles)
+      updateEngineParticles()
 
-      engineParticles.push(particle)
+
+      variables.engineParticles.push(particle)
     }
   }
 
   // Si la nave ha aterrizado, asegúrate de que la velocidad horizontal también sea 0
-  if (landed || crashed) {
-    velocityX = 0
+  if (variables.landed || variables.crashed) {
+    variables.velocityX = 0
+    // Si la nave ha chocado contra el suelo, dibuja humo saliendo de la nave
+    smokeCrashedShip(canvas, context)
   }
 
   // Verificar si la nave ha salido de la pantalla
-  if (spacecraftY > height) {
-    spacecraftY = height
-    velocityY = 0
+  if (variables.spacecraftY > canvas.height) {
+    variables.spacecraftY = canvas.height
+    variables.velocityY = 0
   }
 
   // Actualizar la posición y orientación de la nave
   context.save()
-  context.translate(spacecraftX, spacecraftY)
-  context.rotate(shipRotationAngle)
-  // drawSpacecraft(context, 0, 0) // Dibuja la nave en la posición (0, 0) relativa a la nave girada
+  context.translate(variables.spacecraftX, variables.spacecraftY)
+  context.rotate(variables.shipRotationAngle)
+  // drawSpacecraft(context, 0, -4) // Dibuja la nave en la posición (0, 0) relativa a la nave girada
 
   // Dibujar una línea que represente la dirección de la propulsión
   context.strokeStyle = "#FF0000";
@@ -215,8 +194,8 @@ export function updateSpacecraft(gameProps) {
   context.restore()
 
   // Actualizar y dibujar los píxeles del escape del motor
-  for (let i = 0; i < engineParticles.length; i++) {
-    const particle = engineParticles[i]
+  for (let i = 0; i < variables.engineParticles.length; i++) {
+    const particle = variables.engineParticles[i]
 
     // Actualizar posición
     particle.x += particle.velocityX
@@ -226,7 +205,7 @@ export function updateSpacecraft(gameProps) {
     particle.lifespan--
 
     if (particle.lifespan <= 0) {
-      engineParticles.splice(i, 1)
+      variables.engineParticles.splice(i, 1)
       i--
     }
 
