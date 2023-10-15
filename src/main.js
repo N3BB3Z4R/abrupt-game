@@ -20,10 +20,10 @@ import { constants, variables } from "./Config.js"
 import { playThrust, playSfx } from './Audio.js'
 
 // Llama a las funciones para configurar los controles
-changeControlOption("keyboard") // Cambia la opción de control según tus necesidades
-setupKeyboardControls(gameLoop)
-setupMouseControls()
-setupMobileControls()
+changeControlOption(gameLoop) // Cambia la opción de control según tus necesidades
+// setupKeyboardControls(gameLoop)
+// setupMouseControls()
+// setupMobileControls()
 
 //#############################
 //#
