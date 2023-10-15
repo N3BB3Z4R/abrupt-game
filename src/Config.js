@@ -29,6 +29,8 @@ export const constants = {
   incrementVelocityY: 0.1 * gameSpeed, // Increment in vertical velocity
   incrementFuelItem: 20, // Fuel amount added when collecting a fuel item
   propulsionColors: ["#FFA", "#3FF", "#FD3", "#FF4400"], // Colors for propulsion
+  smokeParticleSize: 4, // Size of smoke particles
+  smokeNumberParticles: 20, // Number of particles in the smoke
   pixelTypes: {
     space: " ",
     mountain: "+",

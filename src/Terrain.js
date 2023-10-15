@@ -22,7 +22,7 @@ export function generateTerrain(width, height) {
   const surface = []
   const maxHeight = Math.floor(height * 0.7) // Altura máxima de las montañas
   const minHeight = Math.floor(height * 0.3) // Altura mínima de los huecos
-  const midHeight = Math.floor((maxHeight + minHeight) / 1.2) // Altura media
+  const midHeight = Math.floor((maxHeight + minHeight) / 1.1) // Altura media
 
   for (let x = 0; x < width; x++) {
     const column = []
@@ -65,7 +65,7 @@ export function drawTerrain(context, surface, terrainColor) {
 
   for (let x = 0; x < surface.length; x++) {
     for (let y = 0; y < surface[x].length; y++) {
-      if (surface[x][y] === "-") {
+      if (surface[x][y] === constants.pixelTypes.hole) {
         context.fillStyle = terrainColor // Color del suelo
         context.fillRect(x * terrainUnitWidth, y * terrainUnitHeight, terrainUnitWidth, terrainUnitHeight)
         // context.fillRect(terrain);

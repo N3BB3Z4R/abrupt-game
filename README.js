@@ -1,5 +1,5 @@
 
-// TODO: Fixear colision nave con asteroides
+// DONE: Fixear colision nave con asteroides
 // TODO: Que el giro de la nave visualmente funcione natural
 // TODO: Arreglar contador de tiempo final que parpadea raro
 // TODO: Arreglar generador de terrenos, hacer mas aleatorio
