@@ -19,6 +19,7 @@
 // TODO: Crear un manejador de localStorage para guardar puntuaciones
 // TODO: Hacer historico de puntuacion
 // DONE: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
+// TODO: Show controls on screen
 // TODO: Arreglar Controles para movil
 // TODO: Arreglar vista de movil
 // TODO: Hacer controles de dificultad
