@@ -45,3 +45,5 @@
 // DONE: Poner contador de tiempo de nave en el aire, y que se pare cuando toca el suelo
 
 // "https://videojuegosantiguos.blogspot.com/2013/06/lunar-lander-atari-1979.html" - Based on Lunar Lander
+// "https://www.researchgate.net/figure/Original-vector-based-Asteroids-game-Atari-1979-showing-ship-in-centre-and-floating_fig2_262309733" - Based on Atari Asteroids
+// "https://www.isogenicengine.com/demo/lander/" Lander done in Isogenic Engine
