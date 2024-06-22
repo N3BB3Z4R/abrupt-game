@@ -15,15 +15,20 @@
 // TODO: Hacerle musica
 // TODO: Añadir contador de numero de items de fuel recogido
 
-// DONE: Crear un manejador de localStorage para guardar configuracion de controles
 // TODO: Crear un manejador de localStorage para guardar puntuaciones
 // TODO: Hacer historico de puntuacion
-// DONE: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
 // TODO: Show controls on screen
 // TODO: Arreglar Controles para movil
 // TODO: Arreglar vista de movil
 // TODO: Hacer controles de dificultad
 
+// TODO: limitar altura alcanzable
+// TODO: Limitar velocidad de propulsion hasta un maximo.
+// TODO: Cuando la nave sale por arriba mostrar indicador de altura en la columna donde esta la nave
+// TODO: Control UI para modificar la velocidad de juego
+
+// DONE: Crear un manejador de localStorage para guardar configuracion de controles
+// DONE: Conmutador para controles de raton o teclado en desktop y touch automatico en movil
 // DONE: Crear repositorio con todas las versiones del codigo
 // DONE: Arreglar colision de fuel con terreno, no deberia contar
 // DONE: Pintar mensajes de textos de eventos en el centro de la pantalla, hacer funcion unica para pintar mensajes
